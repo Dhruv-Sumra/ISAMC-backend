@@ -87,4 +87,8 @@ app.use((req, res) => {
 // Error handling middleware (must be last)
 app.use(errorMiddleware);
 
+app.get('/', (req, res) => {
+  res.json({ success: true, message: 'ISAMC Backend API is running.' });
+});
+
 export default app;
