@@ -71,7 +71,12 @@ app.get('/health', (req, res) => {
 // app.use('/api/contact', contactLimiter);
 // app.use('/api', generalLimiter);
 
-// Routes
+// Root route (must come before other routes)
+app.get('/', (req, res) => {
+  res.json({ success: true, message: 'ISAMC Backend API is running.' });
+});
+
+// API Routes
 app.use("/api/v1/db", dbRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
@@ -79,16 +84,12 @@ app.use("/api/contact", contactRouter);
 app.use("/api/paper", paperRoutes);
 app.use("/api/admin", adminRoutes);
 
-// 404 handler for undefined routes
+// 404 handler for undefined routes (must come after all valid routes)
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found', path: req.originalUrl });
 });
 
 // Error handling middleware (must be last)
 app.use(errorMiddleware);
-
-app.get('/', (req, res) => {
-  res.json({ success: true, message: 'ISAMC Backend API is running.' });
-});
 
 export default app;
