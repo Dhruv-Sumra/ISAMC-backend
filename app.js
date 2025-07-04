@@ -80,12 +80,8 @@ app.use("/api/paper", paperRoutes);
 app.use("/api/admin", adminRoutes);
 
 // 404 handler for undefined routes
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-    path: req.originalUrl
-  });
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found', path: req.originalUrl });
 });
 
 // Error handling middleware (must be last)
