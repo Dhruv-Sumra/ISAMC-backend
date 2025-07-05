@@ -36,8 +36,12 @@ const latestNewsSchema = new mongoose.Schema({
 const leadershipSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   post: { type: String, required: true },
+  place: { type: String, required: false },
   expertise: { type: String, required: true },
   imageUrl: { type: String, required: true },
+  email: { type: String, required: false },
+  linkedinUrl: { type: String, required: false },
+  websiteUrl: { type: String, required: false },
 });
 const memberTierSchema = new mongoose.Schema({
   title: { type: String, required: true },
