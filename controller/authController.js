@@ -206,19 +206,67 @@ export const logout = async (req, res) => {
 };
 export const refreshToken = async (req, res) => {
   try {
-    const token = req.cookies.refreshToken;
-    if (!token) return res.status(401).json({ message: "No refresh token" });
-    const decoded = verifyRefreshToken(token);
-    const user = await userModel.findById(decoded.id);
-    if (!user || user.refreshToken !== token) {
-      return res.status(403).json({ message: "Forbidden or token mismatch" });
+    console.log("Refresh token request received");
+    
+    // Check if JWT secrets are available
+    if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+      console.error("JWT secrets not configured");
+      return res.status(500).json({ 
+        success: false, 
+        message: "Server configuration error" 
+      });
     }
+    
+    const token = req.cookies.refreshToken;
+    console.log("Refresh token from cookies:", token ? "Token exists" : "No token");
+    
+    if (!token) {
+      console.log("No refresh token in cookies");
+      return res.status(401).json({ 
+        success: false, 
+        message: "No refresh token provided" 
+      });
+    }
+    
+    let decoded;
+    try {
+      decoded = verifyRefreshToken(token);
+      console.log("Token decoded successfully:", decoded.id);
+    } catch (tokenError) {
+      console.error("Token verification failed:", tokenError.message);
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid or expired refresh token" 
+      });
+    }
+    
+    const user = await userModel.findById(decoded.id);
+    console.log("User found:", user ? "Yes" : "No");
+    
+    if (!user) {
+      console.log("User not found in database");
+      return res.status(401).json({ 
+        success: false, 
+        message: "User not found" 
+      });
+    }
+    
+    if (user.refreshToken !== token) {
+      console.log("Token mismatch in database");
+      return res.status(401).json({ 
+        success: false, 
+        message: "Token mismatch" 
+      });
+    }
+    
     // Generate new access and refresh tokens
     const newAccessToken = generateAccessToken(user);
     const newRefreshToken = generateRefreshToken(user);
+    
     // Save the new refresh token in DB
     user.refreshToken = newRefreshToken;
     await user.save();
+    
     // Set new refresh token in HTTP-only cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
@@ -226,7 +274,10 @@ export const refreshToken = async (req, res) => {
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
+    
+    console.log("Refresh token successful");
     res.status(200).json({
+      success: true,
       accessToken: newAccessToken,
       user: {
         _id: user._id,
@@ -242,7 +293,10 @@ export const refreshToken = async (req, res) => {
     });
   } catch (err) {
     console.error("Refresh token error:", err);
-    res.status(403).json({ message: "Invalid or expired refresh token" });
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error during token refresh" 
+    });
   }
 };
 

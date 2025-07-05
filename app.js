@@ -38,12 +38,31 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// CORS configuration (simplified for debugging)
+// CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://localhost:3000',
+      'https://localhost:5173'
+    ].filter(Boolean); // Remove any undefined values
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS: Origin ${origin} not allowed`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
   optionsSuccessStatus: 200,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
 app.use(cors(corsOptions));
@@ -63,6 +82,24 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV
+  });
+});
+
+// Environment check endpoint (for debugging)
+app.get('/api/debug/env', (req, res) => {
+  // Only allow in development or if specifically enabled
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_ENV_DEBUG !== 'true') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  
+  res.json({
+    NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
+    FRONTEND_URL: process.env.FRONTEND_URL,
+    JWT_SECRET_SET: !!process.env.JWT_SECRET,
+    JWT_REFRESH_SECRET_SET: !!process.env.JWT_REFRESH_SECRET,
+    MONGODB_URI_SET: !!process.env.MONGODB_URI,
+    SENDER_EMAIL_SET: !!process.env.SENDER_EMAIL
   });
 });
 
