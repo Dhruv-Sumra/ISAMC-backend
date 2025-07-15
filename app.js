@@ -14,6 +14,9 @@ import contactRouter from "./routes/contactRoutes.js";
 import dbConnection from "./database/dbConnection.js";
 import paperRoutes from './routes/paperRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import videoRoutes from './routes/videoRoutes.js';
+import cacheRoutes from './routes/cacheRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -48,14 +51,17 @@ const corsOptions = {
       process.env.FRONTEND_URL,
       'http://localhost:3000',
       'http://localhost:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173',
       'https://localhost:3000',
       'https://localhost:5173'
     ].filter(Boolean); // Remove any undefined values
     
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log(`CORS: Allowing origin ${origin}`);
       callback(null, true);
     } else {
-      console.warn(`CORS: Origin ${origin} not allowed`);
+      console.warn(`CORS: Origin ${origin} not allowed. Allowed origins:`, allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -63,6 +69,7 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+
 };
 
 app.use(cors(corsOptions));
@@ -120,6 +127,9 @@ app.use("/api/user", userRouter);
 app.use("/api/contact", contactRouter);
 app.use("/api/paper", paperRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api", videoRoutes);
+app.use("/api", cacheRoutes);
 
 // 404 handler for undefined routes (must come after all valid routes)
 app.use((req, res) => {

@@ -22,7 +22,7 @@ async function createFirstAdmin() {
     console.log('============================\n');
 
     // Connect to database
-    await mongoose.connect(process.env.MONGO_URI, {
+    await mongoose.connect(process.env.MONGODB_URI, {
       dbName: process.env.DB_NAME || "isamc_db"
     });
     console.log('✅ Connected to database\n');
@@ -118,6 +118,39 @@ async function createFirstAdmin() {
     await mongoose.disconnect();
     console.log('\\n🔌 Database disconnected');
   }
+}
+
+// --- Reset User Password and Verify User Script ---
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import User from '../models/userModel.js';
+
+async function resetUserPasswordAndVerify(email, newPassword) {
+  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/isamc', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  const user = await User.findOne({ email });
+  if (!user) {
+    console.log('User not found:', email);
+    process.exit(1);
+  }
+  user.password = await bcrypt.hash(newPassword, 10);
+  user.isVerified = true;
+  await user.save();
+  console.log(`Password reset and user verified for: ${email}`);
+  process.exit(0);
+}
+
+// Usage: node createAdmin.js reset user@example.com newpassword123
+if (process.argv[2] === 'reset') {
+  const email = process.argv[3];
+  const newPassword = process.argv[4];
+  if (!email || !newPassword) {
+    console.log('Usage: node createAdmin.js reset <email> <newPassword>');
+    process.exit(1);
+  }
+  resetUserPasswordAndVerify(email, newPassword);
 }
 
 // Handle script termination

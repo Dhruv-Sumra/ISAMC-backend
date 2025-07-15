@@ -25,14 +25,24 @@ export const getUserData = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { name, contact, bio } = req.body;
+    const { 
+      name, 
+      contact, 
+      bio, 
+      institute, 
+      designation, 
+      gender, 
+      expertise, 
+      dateOfBirth, 
+      linkedinUrl 
+    } = req.body;
     const userId = req.user.id;
 
     // Validate required fields
-    if (!name) {
+    if (!name || !contact || !bio || !institute || !designation || !gender || !expertise || !dateOfBirth) {
       return res.status(400).json({
         success: false,
-        message: 'Name is required'
+        message: 'All required fields must be provided: name, contact, bio, institute, designation, gender, expertise, and dateOfBirth'
       });
     }
 
@@ -41,8 +51,14 @@ export const updateProfile = async (req, res) => {
       userId,
       {
         name,
-        contact: contact || "",
-        bio: bio || ""
+        contact,
+        bio,
+        institute,
+        designation,
+        gender,
+        expertise,
+        dateOfBirth,
+        linkedinUrl: linkedinUrl || ""
       },
       { new: true, runValidators: true }
     ).select('-password');

@@ -20,5 +20,6 @@ authRouter.post('/verify-account', userAuth, validateOTP, handleValidationErrors
 authRouter.post('/send-reset-password', sendResetOtp);
 authRouter.post('/reset-password', validatePasswordReset, handleValidationErrors, resetPassword);
 authRouter.get('/refresh', refreshToken);
+authRouter.post('/verify-email', verifyEmail);
 
 export default authRouter;

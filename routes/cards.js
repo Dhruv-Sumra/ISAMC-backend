@@ -247,4 +247,13 @@ router.get("/case-studies", async (req, res) => {
   }
 });
 
+router.get('/other-events', async (req, res) => {
+  try {
+    const data = await fetchSection('otherEvents');
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch other AM events.' });
+  }
+});
+
 export default router;

@@ -160,7 +160,6 @@ router.get("/section/:sectionName", userAuth, adminAuth, async (req, res) => {
 router.post("/upload-image", userAuth, adminAuth, async (req, res) => {
   try {
     // This is a placeholder - implement actual file upload logic
-    // You can use multer or cloudinary for image uploads
     res.status(200).json({ 
       success: true, 
       message: "Image upload endpoint - implement file upload logic",
@@ -174,6 +173,123 @@ router.post("/upload-image", userAuth, adminAuth, async (req, res) => {
     });
   }
 });
+
+// Bulk upload items from Excel
+router.post("/bulk-upload/:sectionName", userAuth, adminAuth, async (req, res) => {
+  try {
+    const { sectionName } = req.params;
+    const { data } = req.body;
+
+    if (!Array.isArray(data) || data.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid data format or empty data array"
+      });
+    }
+
+    // Validate data based on section
+    const validationErrors = [];
+    data.forEach((item, index) => {
+      const errors = validateBulkUploadItem(item, sectionName);
+      if (errors.length > 0) {
+        validationErrors.push({
+          row: index + 1,
+          errors
+        });
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors found",
+        errors: validationErrors
+      });
+    }
+
+    // Add items to the database
+    const result = await DB.findOneAndUpdate(
+      {},
+      { $push: { [sectionName]: { $each: data } } },
+      { new: true, upsert: true }
+    );
+
+    logger.info('Bulk upload successful', { 
+      sectionName, 
+      count: data.length, 
+      adminId: req.user._id 
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully uploaded ${data.length} items to ${sectionName}`,
+      data: result[sectionName]
+    });
+  } catch (error) {
+    logger.error('Bulk upload error', { 
+      error: error.message, 
+      sectionName: req.params.sectionName, 
+      adminId: req.user._id 
+    });
+    res.status(500).json({
+      success: false,
+      message: "Error uploading data",
+      error: error.message
+    });
+  }
+});
+
+// Helper function to validate bulk upload items
+const validateBulkUploadItem = (item, sectionName) => {
+  const errors = [];
+
+  switch (sectionName) {
+    case 'Publications':
+      if (!item.title || item.title.trim() === '') {
+        errors.push('Title is required');
+      }
+      if (!item.subtitle || item.subtitle.trim() === '') {
+        errors.push('Subtitle is required');
+      }
+      if (!item.body || item.body.trim() === '') {
+        errors.push('Body is required');
+      }
+      break;
+    case 'News':
+      if (!item.title || item.title.trim() === '') {
+        errors.push('Title is required');
+      }
+      if (!item.body || item.body.trim() === '') {
+        errors.push('Body is required');
+      }
+      if (!item.date || item.date.trim() === '') {
+        errors.push('Date is required');
+      }
+      break;
+    case 'Events':
+    case 'upevents':
+    case 'pastEvents':
+      if (!item.title || item.title.trim() === '') {
+        errors.push('Title is required');
+      }
+      if (!item.body || item.body.trim() === '') {
+        errors.push('Body is required');
+      }
+      if (!item.date || item.date.trim() === '') {
+        errors.push('Date is required');
+      }
+      if (!item.location || item.location.trim() === '') {
+        errors.push('Location is required');
+      }
+      break;
+    default:
+      if (!item.title || item.title.trim() === '') {
+        errors.push('Title is required');
+      }
+  }
+
+  return errors;
+};
 
 // User Management Routes
 

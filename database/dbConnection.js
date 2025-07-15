@@ -13,7 +13,7 @@ const dbConnection = async () => {
       w: 'majority'
     };
 
-    await mongoose.connect(process.env.MONGO_URI, options);
+    await mongoose.connect(process.env.MONGODB_URI, options);
     logger.info("Connected to database successfully");
     
     // Connection event listeners

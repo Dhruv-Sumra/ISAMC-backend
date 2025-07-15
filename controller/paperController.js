@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import transporter from '../config/nodemailer.js';
 
 export const submitPaper = async (req, res) => {
   try {
@@ -8,26 +8,11 @@ export const submitPaper = async (req, res) => {
       return res.json({ success: false, message: 'All fields are required.' });
     }
 
-    // Configure nodemailer
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.SENDER_EMAIL,
-        pass: process.env.SENDER_PASS,
-      },
-    });
-
     const mailOptions = {
-      from: process.env.SENDER_EMAIL,
       to: process.env.SENDER_EMAIL, // send to yourself
       subject: `New Paper Submission: ${title}`,
       text: `Name: ${name}\nEmail: ${email}\nTitle: ${title}`,
-      attachments: [
-        {
-          filename: file.originalname,
-          content: file.buffer,
-        },
-      ],
+      // Brevo API does not support attachments in the free plan, so skip attachments if not on paid plan
     };
 
     await transporter.sendMail(mailOptions);
