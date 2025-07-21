@@ -18,6 +18,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import videoRoutes from './routes/videoRoutes.js';
 import cacheRoutes from './routes/cacheRoutes.js';
 import galleryRoutes from './routes/galleryRoutes.js';
+import newsletterRoutes from './routes/newsletterRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -133,6 +134,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api", videoRoutes);
 app.use("/api", cacheRoutes);
 app.use('/api/gallery', galleryRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 // 404 handler for undefined routes (must come after all valid routes)
 app.use((req, res) => {
