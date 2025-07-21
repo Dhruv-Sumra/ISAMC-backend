@@ -1,5 +1,5 @@
 import userModel from "../models/userModel.js";
-import transporter from '../config/nodemailer.js';
+import sendBrevoEmail from "../utils/bervoEmail.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -106,26 +106,28 @@ export const register = async (req, res) => {
 
     // Generate OTP
     const otp = String(Math.floor(100000 + Math.random() * 900000));
+    
+    // Validate gender value
+    const validGender = ['Male', 'Female', 'Other'].includes(gender) ? gender : 'Other';
+    
     // Sign registration data (do NOT include password in token for security)
     const regToken = signRegistrationToken({
-      name, email, password, contact, bio, institute, designation, gender, expertise, dateOfBirth, linkedinUrl, otp
+      name, email, password, contact, bio, institute, designation, gender: validGender, expertise, dateOfBirth, linkedinUrl, otp
     });
 
     // Send OTP email
-    const mailOptions = {
-      from: process.env.SENDER_EMAIL,
-      to: email,
-      subject: "Your ISAMC Registration OTP",
-      text: `Your OTP for ISAMC registration is: ${otp}`,
-    };
     try {
-      await transporter.sendMail(mailOptions);
+      await sendBrevoEmail({
+        to: email,
+        subject: "Your ISAMC Registration OTP",
+        text: `Your OTP for ISAMC registration is: ${otp}`
+      });
     } catch (emailError) {
       console.error("Brevo email error (register):", emailError);
       return res.status(500).json({
         success: false,
         message: "Failed to send OTP email.",
-        nodemailerError: emailError && emailError.toString()
+        emailError: emailError && emailError.toString()
       });
     }
 
@@ -368,14 +370,11 @@ export const sendVerifyOtp = async (req, res) => {
 
     await user.save();
 
-    const mailOptions = {
-      from: process.env.SENDER_EMAIL,
+    await sendBrevoEmail({
       to: user.email,
       subject: "Account verification OTP",
-      text: `Your OTP is ${otp}`,
-    };
-
-    await transporter.sendMail(mailOptions);
+      text: `Your OTP is ${otp}`
+    });
 
     res.json({ success: true, message: "Verification OTP sent" });
   } catch (err) {
@@ -409,7 +408,7 @@ export const verifyEmail = async (req, res) => {
       bio: regData.bio,
       institute: regData.institute,
       designation: regData.designation,
-      gender: regData.gender,
+      gender: ['Male', 'Female', 'Other'].includes(regData.gender) ? regData.gender : 'Other',
       expertise: regData.expertise,
       dateOfBirth: regData.dateOfBirth,
       linkedinUrl: regData.linkedinUrl,
@@ -454,14 +453,11 @@ export const sendResetOtp = async (req, res) => {
     user.resetOtpExpireAt = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    const mailOptions = {
-      from: process.env.SENDER_EMAIL,
+    await sendBrevoEmail({
       to: email,
       subject: "Password reset OTP",
-      text: `Your OTP is ${otp}`,
-    };
-
-    await transporter.sendMail(mailOptions);
+      text: `Your OTP is ${otp}`
+    });
 
     return res.json({ success: true, message: "OTP sent to your email" });
   } catch (err) {

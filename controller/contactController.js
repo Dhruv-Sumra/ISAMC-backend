@@ -1,5 +1,6 @@
 import transporter from "../config/nodemailer.js";
 import userModel from "../models/userModel.js";
+import sendBrevoEmail from "../utils/bervoEmail.js";
 
 export const sendContactMessage = async (req, res) => {
   try {
@@ -98,7 +99,12 @@ This message was sent from the ISAMC website contact form.
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendBrevoEmail({
+      to: process.env.CONTACT_EMAIL || process.env.SENDER_EMAIL,
+      subject: `Contact Form: ${subject}`,
+      html: mailOptions.html,
+      text: mailOptions.text
+    });
 
     const confirmationMailOptions = {
       from: process.env.SENDER_EMAIL,
@@ -150,7 +156,12 @@ The ISAMC Team
       `
     };
 
-    await transporter.sendMail(confirmationMailOptions);
+    await sendBrevoEmail({
+      to: email,
+      subject: "Thank you for contacting ISAMC",
+      html: confirmationMailOptions.html,
+      text: confirmationMailOptions.text
+    });
 
     return res.json({
       success: true,
@@ -339,7 +350,12 @@ This membership application was submitted from the ISAMC website.
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendBrevoEmail({
+      to: process.env.CONTACT_EMAIL || process.env.SENDER_EMAIL,
+      subject: `New Membership Application: ${membershipType}`,
+      html: mailOptions.html,
+      text: mailOptions.text
+    });
 
     const confirmationMailOptions = {
       from: process.env.SENDER_EMAIL,
@@ -399,7 +415,12 @@ The ISAMC Team
       `
     };
 
-    await transporter.sendMail(confirmationMailOptions);
+    await sendBrevoEmail({
+      to: email,
+      subject: "Thank you for your ISAMC membership application",
+      html: confirmationMailOptions.html,
+      text: confirmationMailOptions.text
+    });
 
     // Update user profile with form data if user is authenticated
     if (userId) {

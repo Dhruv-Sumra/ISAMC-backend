@@ -20,7 +20,7 @@ const testEmail = async () => {
   try {
     const testMailOptions = {
       from: process.env.SENDER_EMAIL,
-      to: process.env.SENDER_EMAIL, // Send to yourself for testing
+      to: process.env.ADMIN_EMAIL, // Send to yourself for testing
       subject: 'Test Email Configuration',
       text: 'This is a test email to verify email configuration.',
       html: '<h1>Test Email</h1><p>This is a test email to verify email configuration.</p>'
