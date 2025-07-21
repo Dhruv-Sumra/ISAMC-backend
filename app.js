@@ -17,6 +17,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import videoRoutes from './routes/videoRoutes.js';
 import cacheRoutes from './routes/cacheRoutes.js';
+import galleryRoutes from './routes/galleryRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +50,7 @@ const corsOptions = {
     
     const allowedOrigins = [
       process.env.FRONTEND_URL,
+      'https://www.isamc.in',
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
@@ -130,6 +132,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api", videoRoutes);
 app.use("/api", cacheRoutes);
+app.use('/api/gallery', galleryRoutes);
 
 // 404 handler for undefined routes (must come after all valid routes)
 app.use((req, res) => {
