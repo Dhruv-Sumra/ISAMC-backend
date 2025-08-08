@@ -163,7 +163,39 @@ router.get("/upcoming-events", async (req, res) => {
   } catch (error) {
     res.status(500).json({ 
       success: false, 
-      message: "Error fetching ",
+      message: "Error fetching upcoming events",
+      error: error.message 
+    });
+  }
+});
+
+// Get individual upcoming event by ID
+router.get("/upcoming-events/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allEvents = await fetchSection("upevents");
+    
+    if (!allEvents || !Array.isArray(allEvents)) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No events found" 
+      });
+    }
+    
+    const event = allEvents.find(event => String(event._id) === String(id));
+    
+    if (!event) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Event not found" 
+      });
+    }
+    
+    res.status(200).json({ success: true, data: event });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching upcoming event",
       error: error.message 
     });
   }
