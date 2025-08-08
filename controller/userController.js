@@ -137,3 +137,24 @@ export const updatePassword = async (req, res) => {
     });
   }
 };
+
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ success: false, message: "No image uploaded" });
+    }
+    const userId = req.user.id;
+    const imageUrl = req.file.path;
+    const user = await userModel.findByIdAndUpdate(
+      userId,
+      { profileImage: imageUrl },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, imageUrl });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
