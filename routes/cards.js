@@ -250,10 +250,13 @@ router.get("/upcoming-events/:id", async (req, res) => {
     // Strategy 3: Array index match (0-based)
     if (!event && !isNaN(id)) {
       const index = parseInt(id);
+      console.log(`Trying array index ${index} (array length: ${allEvents.length})`);
       if (index >= 0 && index < allEvents.length) {
         event = allEvents[index];
-        matchMethod = 'array index match';
-        console.log(`✅ Found by array index [${index}]`);
+        matchMethod = `array index match [${index}]`;
+        console.log(`✅ Found by array index [${index}]: ${event.title}`);
+      } else {
+        console.log(`❌ Index ${index} out of bounds (0-${allEvents.length - 1})`);
       }
     }
     
@@ -271,7 +274,25 @@ router.get("/upcoming-events/:id", async (req, res) => {
       }
     }
     
-    // Strategy 5: Partial match (last resort)
+    // Strategy 5: Content-based ID match (for generated IDs)
+    if (!event && id.includes('-')) {
+      const [titlePart] = id.split('-');
+      const decodedTitle = decodeURIComponent(titlePart);
+      console.log(`Trying content-based match with title: "${decodedTitle}"`);
+      
+      event = allEvents.find(e => {
+        const eventTitle = e.title?.slice(0, 20) || 'event';
+        return eventTitle.toLowerCase().includes(decodedTitle.toLowerCase()) ||
+               decodedTitle.toLowerCase().includes(eventTitle.toLowerCase());
+      });
+      
+      if (event) {
+        matchMethod = 'content-based ID match';
+        console.log('✅ Found by content-based match');
+      }
+    }
+    
+    // Strategy 6: Partial match (last resort)
     if (!event) {
       event = allEvents.find(e => {
         const eId = String(e._id || e.id || '');
