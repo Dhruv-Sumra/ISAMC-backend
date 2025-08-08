@@ -175,24 +175,62 @@ router.get("/upcoming-events/:id", async (req, res) => {
     const { id } = req.params;
     const allEvents = await fetchSection("upevents");
     
-    if (!allEvents || !Array.isArray(allEvents)) {
+    // Debug logging
+    console.log('Requested ID:', id);
+    console.log('All events data:', JSON.stringify(allEvents, null, 2));
+    console.log('All events type:', typeof allEvents);
+    console.log('Is array:', Array.isArray(allEvents));
+    
+    if (!allEvents) {
       return res.status(404).json({ 
         success: false, 
-        message: "No events found" 
+        message: "No events section found in database" 
       });
     }
     
-    const event = allEvents.find(event => String(event._id) === String(id));
+    if (!Array.isArray(allEvents)) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Events data is not in array format",
+        debug: { type: typeof allEvents, data: allEvents }
+      });
+    }
+    
+    if (allEvents.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No events found in array" 
+      });
+    }
+    
+    // Log all event IDs for debugging
+    const eventIds = allEvents.map(event => ({
+      _id: event._id,
+      id: event.id,
+      title: event.title
+    }));
+    console.log('Available event IDs:', eventIds);
+    
+    const event = allEvents.find(event => 
+      String(event._id) === String(id) || 
+      String(event.id) === String(id)
+    );
     
     if (!event) {
       return res.status(404).json({ 
         success: false, 
-        message: "Event not found" 
+        message: "Event not found",
+        debug: {
+          requestedId: id,
+          availableIds: eventIds
+        }
       });
     }
     
+    console.log('Found event:', event.title);
     res.status(200).json({ success: true, data: event });
   } catch (error) {
+    console.error('Error in upcoming-events/:id route:', error);
     res.status(500).json({ 
       success: false, 
       message: "Error fetching upcoming event",
