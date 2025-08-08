@@ -8,12 +8,10 @@ import {
   validatePasswordUpdate,
   handleValidationErrors 
 } from '../middleware/validation.js';
-import { upload } from '../config/cloudinary.js';
 import { uploadProfilePicture } from '../controller/userController.js';
 
 userRouter.get('/data', userAuth, getUserData);
 userRouter.put('/profile', userAuth, validateProfileUpdate, handleValidationErrors, updateProfile);
 userRouter.put('/password', userAuth, validatePasswordUpdate, handleValidationErrors, updatePassword);
-userRouter.post('/profile-picture', userAuth, upload.single('profileImage'), uploadProfilePicture);
 
 export default userRouter;
