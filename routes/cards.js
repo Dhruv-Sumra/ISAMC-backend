@@ -173,15 +173,19 @@ router.get("/upcoming-events", async (req, res) => {
 router.get("/upcoming-events/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('=== UPCOMING EVENT DETAIL REQUEST ===');
+    console.log('Requested ID:', id);
+    console.log('ID type:', typeof id);
+    
     const allEvents = await fetchSection("upevents");
     
-    // Debug logging
-    console.log('Requested ID:', id);
-    console.log('All events data:', JSON.stringify(allEvents, null, 2));
-    console.log('All events type:', typeof allEvents);
-    console.log('Is array:', Array.isArray(allEvents));
+    // Enhanced debug logging
+    console.log('Raw events data type:', typeof allEvents);
+    console.log('Is events array:', Array.isArray(allEvents));
+    console.log('Events length:', allEvents ? allEvents.length : 'N/A');
     
     if (!allEvents) {
+      console.log('❌ No events section found');
       return res.status(404).json({ 
         success: false, 
         message: "No events section found in database" 
@@ -189,6 +193,7 @@ router.get("/upcoming-events/:id", async (req, res) => {
     }
     
     if (!Array.isArray(allEvents)) {
+      console.log('❌ Events data is not array:', typeof allEvents);
       return res.status(404).json({ 
         success: false, 
         message: "Events data is not in array format",
@@ -197,44 +202,121 @@ router.get("/upcoming-events/:id", async (req, res) => {
     }
     
     if (allEvents.length === 0) {
+      console.log('❌ Events array is empty');
       return res.status(404).json({ 
         success: false, 
         message: "No events found in array" 
       });
     }
     
-    // Log all event IDs for debugging
-    const eventIds = allEvents.map(event => ({
-      _id: event._id,
-      id: event.id,
-      title: event.title
-    }));
-    console.log('Available event IDs:', eventIds);
+    // Enhanced event ID logging
+    console.log('\n=== AVAILABLE EVENTS ===');
+    const eventIds = allEvents.map((event, index) => {
+      const eventInfo = {
+        index,
+        _id: event._id,
+        id: event.id,
+        title: event.title || 'No title',
+        _idType: typeof event._id,
+        idType: typeof event.id
+      };
+      console.log(`Event ${index}:`, eventInfo);
+      return eventInfo;
+    });
     
-    const event = allEvents.find(event => 
-      String(event._id) === String(id) || 
-      String(event.id) === String(id)
-    );
+    // Multiple ID matching strategies
+    console.log('\n=== SEARCHING FOR EVENT ===');
+    console.log('Looking for ID:', id);
+    
+    let event = null;
+    let matchMethod = null;
+    
+    // Strategy 1: Exact _id match
+    event = allEvents.find(e => String(e._id) === String(id));
+    if (event) {
+      matchMethod = '_id exact match';
+      console.log('✅ Found by _id exact match');
+    }
+    
+    // Strategy 2: Exact id match
+    if (!event) {
+      event = allEvents.find(e => String(e.id) === String(id));
+      if (event) {
+        matchMethod = 'id exact match';
+        console.log('✅ Found by id exact match');
+      }
+    }
+    
+    // Strategy 3: Array index match (0-based)
+    if (!event && !isNaN(id)) {
+      const index = parseInt(id);
+      if (index >= 0 && index < allEvents.length) {
+        event = allEvents[index];
+        matchMethod = 'array index match';
+        console.log(`✅ Found by array index [${index}]`);
+      }
+    }
+    
+    // Strategy 4: ObjectId string match (MongoDB)
+    if (!event) {
+      event = allEvents.find(e => {
+        if (e._id && typeof e._id === 'object' && e._id.toString) {
+          return e._id.toString() === id;
+        }
+        return false;
+      });
+      if (event) {
+        matchMethod = 'ObjectId toString match';
+        console.log('✅ Found by ObjectId toString');
+      }
+    }
+    
+    // Strategy 5: Partial match (last resort)
+    if (!event) {
+      event = allEvents.find(e => {
+        const eId = String(e._id || e.id || '');
+        return eId.includes(id) || id.includes(eId);
+      });
+      if (event) {
+        matchMethod = 'partial match';
+        console.log('✅ Found by partial match');
+      }
+    }
     
     if (!event) {
+      console.log('❌ Event not found with any strategy');
       return res.status(404).json({ 
         success: false, 
         message: "Event not found",
         debug: {
           requestedId: id,
-          availableIds: eventIds
+          requestedIdType: typeof id,
+          availableIds: eventIds,
+          totalEvents: allEvents.length,
+          searchStrategies: [
+            '_id exact match',
+            'id exact match', 
+            'array index match',
+            'ObjectId toString match',
+            'partial match'
+          ]
         }
       });
     }
     
-    console.log('Found event:', event.title);
+    console.log('✅ Event found:', event.title || 'Untitled Event');
+    console.log('Match method:', matchMethod);
+    console.log('=== SUCCESS ===\n');
+    
     res.status(200).json({ success: true, data: event });
+    
   } catch (error) {
-    console.error('Error in upcoming-events/:id route:', error);
+    console.error('❌ Error in upcoming-events/:id route:', error);
     res.status(500).json({ 
       success: false, 
       message: "Error fetching upcoming event",
-      error: error.message 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
@@ -323,6 +405,94 @@ router.get('/other-events', async (req, res) => {
     res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to fetch other AM events.' });
+  }
+});
+
+// Get individual other event by ID
+router.get('/other-events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('=== OTHER EVENT DETAIL REQUEST ===');
+    console.log('Requested ID:', id);
+    
+    const allEvents = await fetchSection('otherEvents');
+    
+    if (!allEvents || !Array.isArray(allEvents)) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Other events not found in database" 
+      });
+    }
+    
+    // Find event using multiple strategies
+    let event = allEvents.find(e => String(e._id) === String(id) || String(e.id) === String(id));
+    
+    if (!event && !isNaN(id)) {
+      const index = parseInt(id);
+      if (index >= 0 && index < allEvents.length) {
+        event = allEvents[index];
+      }
+    }
+    
+    if (!event) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Other event not found"
+      });
+    }
+    
+    res.status(200).json({ success: true, data: event });
+  } catch (error) {
+    console.error('Error in other-events/:id route:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching other event",
+      error: error.message 
+    });
+  }
+});
+
+// Get individual past event by ID
+router.get('/past-events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('=== PAST EVENT DETAIL REQUEST ===');
+    console.log('Requested ID:', id);
+    
+    const allEvents = await fetchSection('pastEvents');
+    
+    if (!allEvents || !Array.isArray(allEvents)) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Past events not found in database" 
+      });
+    }
+    
+    // Find event using multiple strategies
+    let event = allEvents.find(e => String(e._id) === String(id) || String(e.id) === String(id));
+    
+    if (!event && !isNaN(id)) {
+      const index = parseInt(id);
+      if (index >= 0 && index < allEvents.length) {
+        event = allEvents[index];
+      }
+    }
+    
+    if (!event) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Past event not found"
+      });
+    }
+    
+    res.status(200).json({ success: true, data: event });
+  } catch (error) {
+    console.error('Error in past-events/:id route:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching past event",
+      error: error.message 
+    });
   }
 });
 
