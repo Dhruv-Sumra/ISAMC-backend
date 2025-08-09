@@ -1,6 +1,6 @@
 import transporter from "../config/nodemailer.js";
 import userModel from "../models/userModel.js";
-import sendBrevoEmail from "../utils/bervoEmail.js";
+import sendCpanelEmail from "../utils/cpanelEmail.js";
 
 export const sendContactMessage = async (req, res) => {
   try {
@@ -100,8 +100,8 @@ This message was sent from the ISAMC website contact form.
       `
     };
 
-    await sendBrevoEmail({
-      to: process.env.CONTACT_EMAIL || process.env.SENDER_EMAIL,
+    await sendCpanelEmail({
+      to: process.env.CONTACT_EMAIL || process.env.CPANEL_EMAIL_USER,
       subject: `Contact Form: ${subject}`,
       text: mailOptions.text
     });
@@ -156,7 +156,7 @@ The ISAMC Team
       `
     };
 
-    await sendBrevoEmail({
+    await sendCpanelEmail({
       to: email,
       subject: "Thank you for contacting ISAMC",
       text: confirmationMailOptions.text
@@ -349,8 +349,8 @@ This membership application was submitted from the ISAMC website.
       `
     };
 
-    await sendBrevoEmail({
-      to: process.env.CONTACT_EMAIL || process.env.SENDER_EMAIL,
+    await sendCpanelEmail({
+      to: process.env.CONTACT_EMAIL || process.env.CPANEL_EMAIL_USER,
       subject: `New Membership Application: ${membershipType}`,
       html: mailOptions.html,
       text: mailOptions.text
@@ -414,7 +414,7 @@ The ISAMC Team
       `
     };
 
-    await sendBrevoEmail({
+    await sendCpanelEmail({
       to: email,
       subject: "Thank you for your ISAMC membership application",
       html: confirmationMailOptions.html,

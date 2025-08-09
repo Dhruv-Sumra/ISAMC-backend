@@ -1,5 +1,5 @@
 import userModel from "../models/userModel.js";
-import sendBrevoEmail from "../utils/bervoEmail.js";
+import sendCpanelEmail from "../utils/cpanelEmail.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -117,13 +117,13 @@ export const register = async (req, res) => {
 
     // Send OTP email
     try {
-      await sendBrevoEmail({
+      await sendCpanelEmail({
         to: email,
         subject: "Your ISAMC Registration OTP",
         text: `Your OTP for ISAMC registration is: ${otp}`
       });
     } catch (emailError) {
-      console.error("Brevo email error (register):", emailError);
+      console.error("cPanel email error (register):", emailError);
       return res.status(500).json({
         success: false,
         message: "Failed to send OTP email.",
@@ -381,7 +381,7 @@ export const sendVerifyOtp = async (req, res) => {
 
     await user.save();
 
-    await sendBrevoEmail({
+    await sendCpanelEmail({
       to: user.email,
       subject: "Account verification OTP",
       text: `Your OTP is ${otp}`
@@ -464,7 +464,7 @@ export const sendResetOtp = async (req, res) => {
     user.resetOtpExpireAt = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    await sendBrevoEmail({
+    await sendCpanelEmail({
       to: email,
       subject: "Password reset OTP",
       text: `Your OTP is ${otp}`

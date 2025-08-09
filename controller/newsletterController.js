@@ -1,6 +1,6 @@
 import Subscriber from '../models/subscriberModel.js';
 import Newsletter from '../models/newsletterModel.js';
-import sendBrevoEmail from '../utils/bervoEmail.js';
+import sendCpanelEmail from '../utils/cpanelEmail.js';
 
 // Subscribe to newsletter
 export const subscribe = async (req, res) => {
@@ -37,11 +37,21 @@ export const sendNewsletter = async (req, res) => {
     await newNewsletter.save();
 
     const emails = subscribers.map(s => s.email);
-    await sendBrevoEmail({
-      to: emails,
-      subject: subject,
-      html: content
-    });
+    
+    // Send emails individually to avoid bulk email issues
+    for (const email of emails) {
+      try {
+        await sendCpanelEmail({
+          to: email,
+          subject: subject,
+          html: content,
+          text: content.replace(/<[^>]*>/g, '') // Strip HTML for text version
+        });
+      } catch (emailError) {
+        console.error(`Failed to send newsletter to ${email}:`, emailError);
+        // Continue with other emails even if one fails
+      }
+    }
 
     newNewsletter.isSent = true;
     newNewsletter.sentAt = new Date();
