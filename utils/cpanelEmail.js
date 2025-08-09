@@ -11,7 +11,7 @@ console.log('CPANEL_SENDER_NAME:', process.env.CPANEL_SENDER_NAME || 'NOT SET');
 
 // Create transporter for cPanel SMTP
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: process.env.CPANEL_SMTP_HOST,
     port: parseInt(process.env.CPANEL_SMTP_PORT) || 587,
     secure: process.env.CPANEL_SMTP_PORT === '465', // true for 465, false for other ports
