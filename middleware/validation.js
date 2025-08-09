@@ -47,7 +47,7 @@ export const validateContact = [
     .withMessage('Please provide a valid email address'),
   
   body('mobile')
-    .optional()
+    .optional({ nullable: true, checkFalsy: true })
     .isMobilePhone('any')
     .withMessage('Please provide a valid mobile number'),
   

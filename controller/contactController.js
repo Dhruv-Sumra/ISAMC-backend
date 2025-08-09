@@ -21,10 +21,11 @@ export const sendContactMessage = async (req, res) => {
       });
     }
 
-    if (mobile && mobile.length !== 10) {
+    // Mobile validation - allow empty or valid numbers
+    if (mobile && mobile.trim() !== "" && (mobile.length < 10 || mobile.length > 15)) {
       return res.status(400).json({
         success: false,
-        message: "Please enter a valid 10-digit mobile number"
+        message: "Please enter a valid mobile number (10-15 digits)"
       });
     }
 
