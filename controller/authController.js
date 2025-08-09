@@ -241,17 +241,28 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
-    res.clearCookie("refreshToken");
+    
+    // Clear the refresh token cookie with proper options
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/"
+    });
+    
+    // Remove refresh token from database if it exists
     if (token) {
       await userModel.findOneAndUpdate(
         { refreshToken: token },
-        { refreshToken: "" }
+        { $unset: { refreshToken: 1 } } // Remove the field entirely
       );
+      console.log('Refresh token removed from database');
     }
 
-    return res.status(200).json({ success: true, message: "Logged Out" });
+    return res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error('Logout error:', err);
+    return res.status(500).json({ success: false, message: "Logout failed" });
   }
 };
 export const refreshToken = async (req, res) => {

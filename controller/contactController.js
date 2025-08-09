@@ -103,7 +103,6 @@ This message was sent from the ISAMC website contact form.
     await sendBrevoEmail({
       to: process.env.CONTACT_EMAIL || process.env.SENDER_EMAIL,
       subject: `Contact Form: ${subject}`,
-      html: mailOptions.html,
       text: mailOptions.text
     });
 
@@ -160,7 +159,6 @@ The ISAMC Team
     await sendBrevoEmail({
       to: email,
       subject: "Thank you for contacting ISAMC",
-      html: confirmationMailOptions.html,
       text: confirmationMailOptions.text
     });
 
