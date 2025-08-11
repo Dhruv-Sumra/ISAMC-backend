@@ -5,6 +5,72 @@ import transactionModel from '../models/transactionModel.js';
 import transporter from '../config/nodemailer.js';
 import { validationResult } from 'express-validator';
 
+// Membership pricing configuration
+const MEMBERSHIP_PRICING = {
+  'Student': {
+    annual: 500,
+    lifetime: 5000,
+    benefits: [
+      'Access to research papers and publications',
+      'Student networking events',
+      'Career guidance resources',
+      'Educational webinars and workshops'
+    ]
+  },
+  'Regular': {
+    annual: 1000,
+    lifetime: 10000,
+    benefits: [
+      'Full access to all publications',
+      'Professional networking events',
+      'Industry conferences access',
+      'Technical workshops and seminars',
+      'Career development resources'
+    ]
+  },
+  'Senior': {
+    annual: 750,
+    lifetime: 7500,
+    benefits: [
+      'All regular member benefits',
+      'Senior member recognition',
+      'Mentorship opportunities',
+      'Priority access to events'
+    ]
+  },
+  'Institutional': {
+    annual: 5000,
+    lifetime: 50000,
+    benefits: [
+      'Multiple user access',
+      'Institutional recognition',
+      'Bulk resource access',
+      'Corporate training programs',
+      'Industry partnership opportunities'
+    ]
+  },
+  'International': {
+    annual: 2000,
+    lifetime: 20000,
+    benefits: [
+      'Global membership benefits',
+      'International conference access',
+      'Cross-border networking',
+      'Research collaboration opportunities'
+    ]
+  },
+  'Life': {
+    lifetime: 15000,
+    benefits: [
+      'Lifetime access to all resources',
+      'Premium member privileges',
+      'Alumni network access',
+      'Legacy member recognition',
+      'All future benefits included'
+    ]
+  }
+};
+
 // Initialize Stripe with secret key
 const stripe = process.env.STRIPE_SECRET_KEY 
   ? new Stripe(process.env.STRIPE_SECRET_KEY)
