@@ -1,5 +1,6 @@
 import transporter from "../config/nodemailer.js";
 import userModel from "../models/userModel.js";
+import membershipModel from "../models/membershipModel.js";
 import sendCpanelEmail from "../utils/cpanelEmail.js";
 
 export const sendContactMessage = async (req, res) => {
@@ -421,9 +422,11 @@ The ISAMC Team
       text: confirmationMailOptions.text
     });
 
-    // Update user profile with form data if user is authenticated
-    if (userId) {
-      try {
+    // Create or update user in database
+    let userRecord = null;
+    try {
+      if (userId) {
+        // Update existing user
         const updateData = {
           name: fullName,
           contact: phone,
@@ -444,17 +447,121 @@ The ISAMC Team
           updateData.bio = expertise;
         }
 
-        await userModel.findByIdAndUpdate(
+        userRecord = await userModel.findByIdAndUpdate(
           userId,
           { $set: updateData },
           { new: true, runValidators: true }
         );
 
         console.log('User profile updated successfully with membership form data');
-      } catch (profileError) {
-        console.error('Error updating user profile:', profileError);
-        // Don't fail the entire request if profile update fails
+      } else {
+        // Find or create user by email
+        userRecord = await userModel.findOne({ email });
+        if (!userRecord) {
+          userRecord = new userModel({
+            name: fullName,
+            email: email,
+            password: 'membership_application_' + Date.now(), // Temporary password for membership applications
+            contact: phone,
+            institute: institute,
+            designation: designation,
+            gender: gender,
+            dateOfBirth: dateOfBirth,
+            expertise: expertise,
+            linkedinProfile: linkedinProfile,
+            bio: expertise,
+            isAccountVerified: false // Since this is a guest registration
+          });
+          await userRecord.save();
+          console.log('New user created for membership application');
+        } else {
+          // Update existing user with new information
+          userRecord.name = fullName;
+          userRecord.contact = phone;
+          userRecord.institute = institute;
+          userRecord.designation = designation;
+          userRecord.gender = gender;
+          userRecord.dateOfBirth = dateOfBirth;
+          userRecord.expertise = expertise;
+          if (linkedinProfile) userRecord.linkedinProfile = linkedinProfile;
+          userRecord.bio = expertise;
+          await userRecord.save();
+          console.log('Existing user updated for membership application');
+        }
       }
+    } catch (userError) {
+      console.error('Error handling user data:', userError);
+      // Continue with membership creation even if user update fails
+    }
+
+    // Create membership entry
+    try {
+      if (userRecord) {
+        // Parse price and determine duration
+        const amount = parseInt(tierPrice) || 0;
+        const duration = tierDuration?.toLowerCase().includes('life') ? 'lifetime' : 'annual';
+        
+        // Map frontend membership types to backend enum values
+        const membershipTypeMapping = {
+          'Student Membership': 'Student',
+          'Regular Membership': 'Regular', 
+          'Senior Membership': 'Senior',
+          'Institutional Membership': 'Institutional',
+          'International Membership': 'International',
+          'Life Membership': 'Life',
+          'Student': 'Student',
+          'Regular': 'Regular',
+          'Senior': 'Senior',
+          'Institutional': 'Institutional',
+          'International': 'International',
+          'Life': 'Life'
+        };
+        
+        const mappedMembershipType = membershipTypeMapping[membershipType] || membershipType;
+        
+        // Calculate expiry date for annual memberships
+        let expiresAt = null;
+        if (duration === 'annual') {
+          expiresAt = new Date();
+          expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        }
+
+        // Check if membership already exists for this user and type
+        const existingMembership = await membershipModel.findOne({
+          userId: userRecord._id,
+          membershipType: mappedMembershipType,
+          status: { $in: ['active', 'pending'] }
+        });
+
+        if (!existingMembership) {
+          const newMembership = new membershipModel({
+            userId: userRecord._id,
+            membershipType: mappedMembershipType,
+            duration: duration,
+            amount: amount,
+            currency: 'inr',
+            status: 'pending', // Start as pending until admin approval
+            purchaseDate: new Date(),
+            expiresAt: expiresAt,
+            paymentIntentId: `app_${Date.now()}_${userRecord._id}`, // Temporary ID for application
+            benefits: [
+              'Access to ISAMC resources',
+              'Networking opportunities',
+              'Event access',
+              'Professional development'
+            ]
+          });
+
+          await newMembership.save();
+          console.log('Membership application created successfully:', newMembership._id);
+        } else {
+          console.log('Membership already exists for this user and type');
+        }
+      }
+    } catch (membershipError) {
+      console.error('Error creating membership entry:', membershipError);
+      // Don't fail the entire request if membership creation fails
+      // The email will still be sent and the application will be processed manually
     }
 
     return res.json({

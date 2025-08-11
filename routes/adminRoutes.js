@@ -624,39 +624,7 @@ router.put("/memberships/:membershipId/status", userAuth, adminAuth, async (req,
   }
 });
 
-// Get specific membership details
-router.get("/memberships/:membershipId", userAuth, adminAuth, async (req, res) => {
-  try {
-    const { membershipId } = req.params;
-    
-    const membership = await membershipModel.findById(membershipId)
-      .populate({
-        path: 'userId',
-        select: 'name email contact institute designation gender dateOfBirth expertise linkedinProfile'
-      });
-    
-    if (!membership) {
-      return res.status(404).json({
-        success: false,
-        message: "Membership not found"
-      });
-    }
-    
-    res.status(200).json({
-      success: true,
-      membership
-    });
-  } catch (error) {
-    logger.error('Error fetching membership details', { error: error.message, adminId: req.user._id });
-    res.status(500).json({
-      success: false,
-      message: "Error fetching membership details",
-      error: error.message
-    });
-  }
-});
-
-// Search memberships
+// Search memberships (MUST be before parameterized routes)
 router.get("/memberships/search", userAuth, adminAuth, async (req, res) => {
   try {
     const { q, status, membershipType } = req.query;
@@ -695,6 +663,38 @@ router.get("/memberships/search", userAuth, adminAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error searching memberships",
+      error: error.message
+    });
+  }
+});
+
+// Get specific membership details
+router.get("/memberships/:membershipId", userAuth, adminAuth, async (req, res) => {
+  try {
+    const { membershipId } = req.params;
+    
+    const membership = await membershipModel.findById(membershipId)
+      .populate({
+        path: 'userId',
+        select: 'name email contact institute designation gender dateOfBirth expertise linkedinProfile'
+      });
+    
+    if (!membership) {
+      return res.status(404).json({
+        success: false,
+        message: "Membership not found"
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      membership
+    });
+  } catch (error) {
+    logger.error('Error fetching membership details', { error: error.message, adminId: req.user._id });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching membership details",
       error: error.message
     });
   }
