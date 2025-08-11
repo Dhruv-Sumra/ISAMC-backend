@@ -203,17 +203,6 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      accessToken,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role || 'user' // Ensure role is always returned
-      }
-    });
     const userData = {
       _id: user._id,
       name: user.name,
@@ -231,7 +220,7 @@ export const login = async (req, res) => {
       createdAt: user.createdAt
     };
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       accessToken,
