@@ -1,6 +1,7 @@
 import express from "express";
 import { DB } from "../models/dbSchema.js";
 import userModel from "../models/userModel.js";
+import membershipModel from "../models/membershipModel.js";
 import userAuth from "../middleware/userAuth.js";
 import adminAuth from "../middleware/adminAuth.js";
 import logger from "../config/logger.js";
@@ -470,6 +471,230 @@ router.get("/stats", userAuth, adminAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching statistics",
+      error: error.message
+    });
+  }
+});
+
+// Membership Management Routes
+
+// Get all memberships with pagination and filters
+router.get("/memberships", userAuth, adminAuth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const status = req.query.status;
+    const membershipType = req.query.membershipType;
+    const duration = req.query.duration;
+    
+    // Build query filters
+    let query = {};
+    if (status) query.status = status;
+    if (membershipType) query.membershipType = membershipType;
+    if (duration) query.duration = duration;
+    
+    const memberships = await membershipModel.find(query)
+      .populate({
+        path: 'userId',
+        select: 'name email contact institute designation'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    const total = await membershipModel.countDocuments(query);
+    
+    res.status(200).json({
+      success: true,
+      memberships,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching memberships', { error: error.message, adminId: req.user._id });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching memberships",
+      error: error.message
+    });
+  }
+});
+
+// Get membership statistics
+router.get("/memberships/stats", userAuth, adminAuth, async (req, res) => {
+  try {
+    const [totalMemberships, activeMemberships, expiringSoon, membershipsByType, membershipsByStatus] = await Promise.all([
+      membershipModel.countDocuments(),
+      membershipModel.countDocuments({ status: 'active' }),
+      membershipModel.findExpiringSoon(),
+      membershipModel.aggregate([
+        { $group: { _id: '$membershipType', count: { $sum: 1 } } }
+      ]),
+      membershipModel.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ])
+    ]);
+    
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalMemberships,
+        activeMemberships,
+        expiringSoonCount: expiringSoon.length,
+        expiringSoon: expiringSoon.map(m => ({
+          _id: m._id,
+          membershipType: m.membershipType,
+          expiresAt: m.expiresAt,
+          user: {
+            name: m.userId?.name,
+            email: m.userId?.email
+          }
+        })),
+        membershipsByType: membershipsByType.reduce((acc, item) => {
+          acc[item._id] = item.count;
+          return acc;
+        }, {}),
+        membershipsByStatus: membershipsByStatus.reduce((acc, item) => {
+          acc[item._id] = item.count;
+          return acc;
+        }, {})
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching membership stats', { error: error.message, adminId: req.user._id });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching membership statistics",
+      error: error.message
+    });
+  }
+});
+
+// Update membership status
+router.put("/memberships/:membershipId/status", userAuth, adminAuth, async (req, res) => {
+  try {
+    const { membershipId } = req.params;
+    const { status, reason } = req.body;
+    
+    if (!['active', 'expired', 'cancelled', 'pending'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status value"
+      });
+    }
+    
+    const membership = await membershipModel.findByIdAndUpdate(
+      membershipId,
+      { status },
+      { new: true }
+    ).populate('userId', 'name email contact');
+    
+    if (!membership) {
+      return res.status(404).json({
+        success: false,
+        message: "Membership not found"
+      });
+    }
+    
+    logger.info('Membership status updated', {
+      membershipId,
+      oldStatus: membership.status,
+      newStatus: status,
+      reason,
+      adminId: req.user._id
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: "Membership status updated successfully",
+      membership
+    });
+  } catch (error) {
+    logger.error('Error updating membership status', { error: error.message, adminId: req.user._id });
+    res.status(500).json({
+      success: false,
+      message: "Error updating membership status",
+      error: error.message
+    });
+  }
+});
+
+// Get specific membership details
+router.get("/memberships/:membershipId", userAuth, adminAuth, async (req, res) => {
+  try {
+    const { membershipId } = req.params;
+    
+    const membership = await membershipModel.findById(membershipId)
+      .populate({
+        path: 'userId',
+        select: 'name email contact institute designation gender dateOfBirth expertise linkedinProfile'
+      });
+    
+    if (!membership) {
+      return res.status(404).json({
+        success: false,
+        message: "Membership not found"
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      membership
+    });
+  } catch (error) {
+    logger.error('Error fetching membership details', { error: error.message, adminId: req.user._id });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching membership details",
+      error: error.message
+    });
+  }
+});
+
+// Search memberships
+router.get("/memberships/search", userAuth, adminAuth, async (req, res) => {
+  try {
+    const { q, status, membershipType } = req.query;
+    
+    let query = {};
+    
+    if (status) query.status = status;
+    if (membershipType) query.membershipType = membershipType;
+    
+    let memberships;
+    
+    if (q) {
+      // First, find users matching the search query
+      const users = await userModel.find({
+        $or: [
+          { name: { $regex: q, $options: 'i' } },
+          { email: { $regex: q, $options: 'i' } }
+        ]
+      }).select('_id');
+      
+      const userIds = users.map(user => user._id);
+      query.userId = { $in: userIds };
+    }
+    
+    memberships = await membershipModel.find(query)
+      .populate({
+        path: 'userId',
+        select: 'name email contact institute designation'
+      })
+      .sort({ createdAt: -1 })
+      .limit(20);
+    
+    res.status(200).json({ success: true, memberships });
+  } catch (error) {
+    logger.error('Error searching memberships', { error: error.message, adminId: req.user._id });
+    res.status(500).json({
+      success: false,
+      message: "Error searching memberships",
       error: error.message
     });
   }
