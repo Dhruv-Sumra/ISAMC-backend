@@ -72,3 +72,12 @@ const adminAuth = async (req, res, next) => {
 };
 
 export default adminAuth;
+
+
+// Add temporary logging:
+console.log('Admin check:', {
+  email: req.user.email, 
+  role: req.user.role,
+  isAdminByRole: req.user.role === 'admin',
+  isAdminByEmail: adminEmails.includes(req.user.email)
+});
