@@ -42,11 +42,141 @@ router.get("/home-mission", async (req, res) => {
 router.get("/featured-events", async (req, res) => {
   try {
     const data = await fetchSection("Events");
-    res.status(200).json({ success: true, data });
+    
+    // Ensure data is an array and has proper structure
+    const eventsArray = Array.isArray(data) ? data : [];
+    
+    // Validate and clean event data
+    const cleanedEvents = eventsArray.map(event => ({
+      _id: event._id,
+      title: event.title || 'Untitled Event',
+      body: event.body || '',
+      date: event.date || '',
+      location: event.location || '',
+      imageUrl: event.imageUrl || event.img || '',
+      // Add any other fields that might be needed
+      ...event
+    }));
+    
+    res.status(200).json({ 
+      success: true, 
+      data: cleanedEvents,
+      count: cleanedEvents.length 
+    });
   } catch (error) {
+    console.error('Featured events fetch error:', error);
     res.status(500).json({ 
       success: false, 
       message: "Error fetching featured events",
+      error: error.message 
+    });
+  }
+});
+
+// Get individual featured event by ID
+router.get("/featured-events/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Requested featured event ID:', id);
+    
+    const allEvents = await fetchSection("Events");
+    
+    if (!allEvents || !Array.isArray(allEvents)) {
+      console.log('❌ No featured events section found or not array');
+      return res.status(404).json({ 
+        success: false, 
+        message: "No featured events found in database" 
+      });
+    }
+    
+    if (allEvents.length === 0) {
+      console.log('❌ Featured events array is empty');
+      return res.status(404).json({ 
+        success: false, 
+        message: "No featured events available" 
+      });
+    }
+    
+    let event = null;
+    let matchMethod = '';
+    
+    // Strategy 1: Exact _id match
+    event = allEvents.find(e => String(e._id) === String(id));
+    if (event) {
+      matchMethod = '_id exact match';
+    }
+    
+    // Strategy 2: Exact id match
+    if (!event) {
+      event = allEvents.find(e => String(e.id) === String(id));
+      if (event) {
+        matchMethod = 'id exact match';
+      }
+    }
+    
+    // Strategy 3: Array index match
+    if (!event && !isNaN(id)) {
+      const index = parseInt(id);
+      console.log(`Trying array index ${index} (array length: ${allEvents.length})`);
+      if (index >= 0 && index < allEvents.length) {
+        event = allEvents[index];
+        matchMethod = `array index match [${index}]`;
+        console.log(`✅ Found by array index [${index}]: ${event.title}`);
+      } else {
+        console.log(`❌ Index ${index} out of bounds (0-${allEvents.length - 1})`);
+      }
+    }
+    
+    // Strategy 4: ObjectId string match (MongoDB)
+    if (!event) {
+      event = allEvents.find(e => {
+        if (e._id && typeof e._id === 'object' && e._id.toString) {
+          return e._id.toString() === id;
+        }
+        return false;
+      });
+      if (event) {
+        matchMethod = 'ObjectId string match';
+      }
+    }
+    
+    if (!event) {
+      console.log('❌ Featured event not found with any strategy');
+      const eventIds = allEvents.map((event, index) => ({
+        index,
+        _id: event._id,
+        id: event.id,
+        title: event.title?.slice(0, 30) || 'No title'
+      }));
+      
+      return res.status(404).json({ 
+        success: false, 
+        message: "Featured event not found",
+        debug: {
+          requestedId: id,
+          requestedIdType: typeof id,
+          availableIds: eventIds,
+          totalEvents: allEvents.length,
+          searchStrategies: [
+            '_id exact match',
+            'id exact match', 
+            'array index match',
+            'ObjectId string match'
+          ]
+        }
+      });
+    }
+    
+    console.log(`✅ Featured event found using: ${matchMethod}`);
+    console.log(`Event title: ${event.title}`);
+    
+    res.status(200).json({ success: true, data: event });
+    
+  } catch (error) {
+    console.error('❌ Error in featured-events/:id route:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching featured event details",
       error: error.message 
     });
   }

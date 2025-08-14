@@ -68,7 +68,7 @@ export const getServerTime = async (req, res) => {
 
 // Helper to sign registration data
 function signRegistrationToken(data) {
-  return jwt.sign(data, process.env.JWT_SECRET, { expiresIn: '15m' });
+  return jwt.sign(data, process.env.JWT_SECRET, { expiresIn: '1d' });
 }
 
 // Helper to verify registration token
@@ -148,7 +148,7 @@ export const register = async (req, res) => {
 
 // Ensure login returns user data immediately
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe = true } = req.body;
 
   try {
     console.log('Login attempt for email:', email);
@@ -196,11 +196,16 @@ export const login = async (req, res) => {
     await user.save();
     const accessToken = generateAccessToken(user);
 
+    // Set cookie expiration based on rememberMe option
+    const cookieMaxAge = rememberMe 
+      ? 90 * 24 * 60 * 60 * 1000  // 90 days if remember me
+      : 24 * 60 * 60 * 1000;      // 1 day if not remember me
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Added secure flag
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: cookieMaxAge
     });
 
     const userData = {
@@ -332,7 +337,7 @@ export const refreshToken = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 90 * 24 * 60 * 60 * 1000, // 90 days
     });
     
     console.log("Refresh token successful");
