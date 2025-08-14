@@ -263,8 +263,10 @@ router.get("/leadership", async (req, res) => {
 router.get("/member-tiers", async (req, res) => {
   try {
     const data = await fetchSection("tier");
+    console.log('Member tiers data fetched:', JSON.stringify(data, null, 2));
     res.status(200).json({ success: true, data });
   } catch (error) {
+    console.error('Error fetching member tiers:', error);
     res.status(500).json({ 
       success: false, 
       message: "Error fetching member tiers",

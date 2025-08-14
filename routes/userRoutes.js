@@ -11,6 +11,7 @@ import {
 import { uploadProfilePicture } from '../controller/userController.js';
 
 userRouter.get('/data', userAuth, getUserData);
+userRouter.get('/profile', userAuth, getUserData); // Add GET profile endpoint
 userRouter.put('/profile', userAuth, validateProfileUpdate, handleValidationErrors, updateProfile);
 userRouter.put('/password', userAuth, validatePasswordUpdate, handleValidationErrors, updatePassword);
 

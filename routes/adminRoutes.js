@@ -11,8 +11,30 @@ import {
   getAllAdmins, 
   getAdminStats 
 } from "../utils/adminUtils.js";
+import { initializeSampleData } from "../utils/sampleData.js";
 
 const router = express.Router();
+
+// Initialize sample data
+router.post("/initialize-data", userAuth, adminAuth, async (req, res) => {
+  try {
+    const result = await initializeSampleData(DB);
+    
+    logger.info('Sample data initialization requested', { 
+      adminId: req.user._id,
+      result: result.message 
+    });
+    
+    res.status(200).json(result);
+  } catch (error) {
+    logger.error('Sample data initialization error', { error: error.message, adminId: req.user._id });
+    res.status(500).json({ 
+      success: false, 
+      message: "Error initializing sample data",
+      error: error.message 
+    });
+  }
+});
 
 // Get admin dashboard data with statistics
 router.get("/dashboard", userAuth, adminAuth, async (req, res) => {
@@ -21,6 +43,24 @@ router.get("/dashboard", userAuth, adminAuth, async (req, res) => {
       DB.findOne({}),
       getAdminStats()
     ]);
+    
+    // If no data exists, initialize with sample data
+    if (!contentData) {
+      console.log('No data found, initializing sample data...');
+      await initializeSampleData(DB);
+      const newContentData = await DB.findOne({});
+      
+      res.status(200).json({ 
+        success: true, 
+        data: newContentData,
+        stats: userStats,
+        message: 'Sample data initialized'
+      });
+      return;
+    }
+    
+    // Basic logging for monitoring
+    console.log('Admin dashboard data fetched successfully');
     
     res.status(200).json({ 
       success: true, 

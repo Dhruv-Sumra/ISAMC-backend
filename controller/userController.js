@@ -13,7 +13,7 @@ export const getUserData = async (req, res) => {
     
     return res.json({
       success: true,
-      userData: user
+      user: user
     });
   } catch (err) {
     return res.status(500).json({
