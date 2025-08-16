@@ -196,10 +196,8 @@ export const login = async (req, res) => {
     await user.save();
     const accessToken = generateAccessToken(user);
 
-    // Set cookie expiration based on rememberMe option
-    const cookieMaxAge = rememberMe 
-      ? 90 * 24 * 60 * 60 * 1000  // 90 days if remember me
-      : 24 * 60 * 60 * 1000;      // 1 day if not remember me
+    // Set long cookie expiration for forever login
+    const cookieMaxAge = 3650 * 24 * 60 * 60 * 1000; // 10 years for forever login
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -271,7 +269,7 @@ export const logout = async (req, res) => {
 };
 export const refreshToken = async (req, res) => {
   try {
-    console.log("Refresh token request received");
+    console.log("🔄 Refresh token request received");
     
     // Check if JWT secrets are available
     if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
@@ -283,7 +281,7 @@ export const refreshToken = async (req, res) => {
     }
     
     const token = req.cookies.refreshToken;
-    console.log("Refresh token from cookies:", token ? "Token exists" : "No token");
+    console.log("Refresh token from cookies:", token ? "✅ Token exists" : "❌ No token");
     
     if (!token) {
       console.log("No refresh token in cookies");
@@ -296,9 +294,9 @@ export const refreshToken = async (req, res) => {
     let decoded;
     try {
       decoded = verifyRefreshToken(token);
-      console.log("Token decoded successfully:", decoded.id);
+      console.log("✅ Token decoded successfully:", decoded.id);
     } catch (tokenError) {
-      console.error("Token verification failed:", tokenError.message);
+      console.error("❌ Token verification failed:", tokenError.message);
       return res.status(401).json({ 
         success: false, 
         message: "Invalid or expired refresh token" 
@@ -306,7 +304,7 @@ export const refreshToken = async (req, res) => {
     }
     
     const user = await userModel.findById(decoded.id);
-    console.log("User found:", user ? "Yes" : "No");
+    console.log("User found:", user ? "✅ Yes" : "❌ No");
     
     if (!user) {
       console.log("User not found in database");
@@ -317,7 +315,7 @@ export const refreshToken = async (req, res) => {
     }
     
     if (user.refreshToken !== token) {
-      console.log("Token mismatch in database");
+      console.log("❌ Token mismatch in database");
       return res.status(401).json({ 
         success: false, 
         message: "Token mismatch" 
@@ -332,15 +330,15 @@ export const refreshToken = async (req, res) => {
     user.refreshToken = newRefreshToken;
     await user.save();
     
-    // Set new refresh token in HTTP-only cookie
+    // Set new refresh token in HTTP-only cookie with extended expiration
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      maxAge: 90 * 24 * 60 * 60 * 1000, // 90 days
+      maxAge: 3650 * 24 * 60 * 60 * 1000, // 10 years for forever login
     });
     
-    console.log("Refresh token successful");
+    console.log("✅ Refresh token successful - session extended");
     res.status(200).json({
       success: true,
       accessToken: newAccessToken,
@@ -350,14 +348,19 @@ export const refreshToken = async (req, res) => {
         email: user.email,
         contact: user.contact || "",
         bio: user.bio || "",
+        institute: user.institute || "",
+        designation: user.designation || "",
+        gender: user.gender || "",
+        expertise: user.expertise || "",
+        dateOfBirth: user.dateOfBirth || "",
+        linkedinUrl: user.linkedinUrl || "",
         role: user.role || "user",
         isVerified: user.isVerified || false,
         createdAt: user.createdAt
-      },
-      serverStartTime: serverStartTime,
+      }
     });
   } catch (err) {
-    console.error("Refresh token error:", err);
+    console.error("❌ Refresh token error:", err);
     res.status(500).json({ 
       success: false, 
       message: "Internal server error during token refresh" 
