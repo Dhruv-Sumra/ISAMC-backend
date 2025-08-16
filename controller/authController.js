@@ -196,8 +196,10 @@ export const login = async (req, res) => {
     await user.save();
     const accessToken = generateAccessToken(user);
 
-    // Set long cookie expiration for forever login
-    const cookieMaxAge = 3650 * 24 * 60 * 60 * 1000; // 10 years for forever login
+    // Set cookie expiration based on rememberMe option
+    const cookieMaxAge = rememberMe 
+      ? 90 * 24 * 60 * 60 * 1000  // 90 days if remember me
+      : 24 * 60 * 60 * 1000;      // 1 day if not remember me
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -351,16 +353,11 @@ export const refreshToken = async (req, res) => {
         institute: user.institute || "",
         designation: user.designation || "",
         gender: user.gender || "",
-        expertise: user.expertise || "",
-        dateOfBirth: user.dateOfBirth || "",
-        linkedinUrl: user.linkedinUrl || "",
-        role: user.role || "user",
-        isVerified: user.isVerified || false,
-        createdAt: user.createdAt
-      }
+        experti
+      serverStartTime: serverStartTime,
     });
   } catch (err) {
-    console.error("❌ Refresh token error:", err);
+    console.error("Refresh token error:", err);
     res.status(500).json({ 
       success: false, 
       message: "Internal server error during token refresh" 
