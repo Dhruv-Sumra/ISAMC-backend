@@ -12,8 +12,14 @@ import {
   getAdminStats 
 } from "../utils/adminUtils.js";
 import { initializeSampleData } from "../utils/sampleData.js";
-
+const express = require('express');
 const router = express.Router();
+const { OtherEventController } = require('../../controller/OtherEventController');
+
+router.post('/other-events', OtherEventController.createEvent);
+router.put('/other-events/:id', OtherEventController.updateEvent);
+
+module.exports = router;
 
 // Initialize sample data
 router.post("/initialize-data", userAuth, adminAuth, async (req, res) => {
