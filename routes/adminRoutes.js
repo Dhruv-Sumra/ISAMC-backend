@@ -12,7 +12,7 @@ import {
   getAdminStats 
 } from "../utils/adminUtils.js";
 import { initializeSampleData } from "../utils/sampleData.js";
-import OtherEventController from "../controllers/otherEventController.js";
+import OtherEventController from "../controller/otherEventController.js";
 
 const router = express.Router();
 
