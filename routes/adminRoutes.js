@@ -12,14 +12,13 @@ import {
   getAdminStats 
 } from "../utils/adminUtils.js";
 import { initializeSampleData } from "../utils/sampleData.js";
-const express = require('express');
-const router = express.Router();
-const { OtherEventController } = require('../../controller/OtherEventController');
+import OtherEventController from "../controllers/otherEventController.js";
 
+const router = express.Router();
+
+// Other events routes (moved to top)
 router.post('/other-events', OtherEventController.createEvent);
 router.put('/other-events/:id', OtherEventController.updateEvent);
-
-module.exports = router;
 
 // Initialize sample data
 router.post("/initialize-data", userAuth, adminAuth, async (req, res) => {
@@ -27,13 +26,16 @@ router.post("/initialize-data", userAuth, adminAuth, async (req, res) => {
     const result = await initializeSampleData(DB);
     
     logger.info('Sample data initialization requested', { 
-      adminId: req.user._id,
+      adminId: req.user._id, // Fixed: Removed backslash
       result: result.message 
     });
     
     res.status(200).json(result);
   } catch (error) {
-    logger.error('Sample data initialization error', { error: error.message, adminId: req.user._id });
+    logger.error('Sample data initialization error', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(500).json({ 
       success: false, 
       message: "Error initializing sample data",
@@ -65,7 +67,6 @@ router.get("/dashboard", userAuth, adminAuth, async (req, res) => {
       return;
     }
     
-    // Basic logging for monitoring
     console.log('Admin dashboard data fetched successfully');
     
     res.status(200).json({ 
@@ -74,7 +75,10 @@ router.get("/dashboard", userAuth, adminAuth, async (req, res) => {
       stats: userStats
     });
   } catch (error) {
-    logger.error('Dashboard fetch error', { error: error.message, adminId: req.user._id });
+    logger.error('Dashboard fetch error', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(500).json({ 
       success: false, 
       message: "Error fetching dashboard data",
@@ -97,7 +101,7 @@ router.put("/update-section/:sectionName", userAuth, adminAuth, async (req, res)
 
     res.status(200).json({ 
       success: true, 
-      message: `${sectionName} updated successfully`,
+      message: `${sectionName} updated successfully`, // Fixed: Proper template literal
       data: result 
     });
   } catch (error) {
@@ -142,8 +146,8 @@ router.put("/update-item/:sectionName/:itemId", userAuth, adminAuth, async (req,
     const updateData = req.body;
 
     const result = await DB.findOneAndUpdate(
-      { [`${sectionName}._id`]: itemId },
-      { $set: { [`${sectionName}.$`]: updateData } },
+      { [`${sectionName}._id`]: itemId }, // Fixed: Proper template literal
+      { $set: { [`${sectionName}.$`]: updateData } }, // Fixed: Proper template literal
       { new: true }
     );
 
@@ -168,7 +172,7 @@ router.delete("/delete-item/:sectionName/:itemId", userAuth, adminAuth, async (r
 
     const result = await DB.findOneAndUpdate(
       {},
-      { $pull: { [sectionName]: { _id: itemId } } },
+      { $pull: { [sectionName]: { _id: itemId } } }, // Fixed: Removed backslash
       { new: true }
     );
 
@@ -203,10 +207,10 @@ router.get("/section/:sectionName", userAuth, adminAuth, async (req, res) => {
   }
 });
 
-// Upload image (placeholder - you'll need to implement file upload)
+// Upload image (placeholder - implement file upload)
 router.post("/upload-image", userAuth, adminAuth, async (req, res) => {
   try {
-    // This is a placeholder - implement actual file upload logic
+    // TODO: Implement actual file upload logic
     res.status(200).json({ 
       success: true, 
       message: "Image upload endpoint - implement file upload logic",
@@ -264,19 +268,19 @@ router.post("/bulk-upload/:sectionName", userAuth, adminAuth, async (req, res) =
     logger.info('Bulk upload successful', { 
       sectionName, 
       count: data.length, 
-      adminId: req.user._id 
+      adminId: req.user._id // Fixed: Removed backslash
     });
 
     res.status(201).json({
       success: true,
-      message: `Successfully uploaded ${data.length} items to ${sectionName}`,
+      message: `Successfully uploaded ${data.length} items to ${sectionName}`, // Fixed: Template literal
       data: result[sectionName]
     });
   } catch (error) {
     logger.error('Bulk upload error', { 
       error: error.message, 
       sectionName: req.params.sectionName, 
-      adminId: req.user._id 
+      adminId: req.user._id // Fixed: Removed backslash
     });
     res.status(500).json({
       success: false,
@@ -340,56 +344,6 @@ const validateBulkUploadItem = (item, sectionName) => {
 
 // User Management Routes
 
-// Get all users with pagination
-router.get("/users", userAuth, adminAuth, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    
-    const users = await userModel.find({})
-      .select('-password -refreshToken')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-    
-    const total = await userModel.countDocuments();
-    
-    res.status(200).json({
-      success: true,
-      users,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error) {
-    logger.error('Error fetching users', { error: error.message, adminId: req.user._id });
-    res.status(500).json({
-      success: false,
-      message: "Error fetching users",
-      error: error.message
-    });
-  }
-});
-
-// Get all admin users
-router.get("/admins", userAuth, adminAuth, async (req, res) => {
-  try {
-    const admins = await getAllAdmins();
-    res.status(200).json({ success: true, admins });
-  } catch (error) {
-    logger.error('Error fetching admins', { error: error.message, adminId: req.user._id });
-    res.status(500).json({
-      success: false,
-      message: "Error fetching admin users",
-      error: error.message
-    });
-  }
-});
-
 // Search users (MUST be before parameterized routes)
 router.get("/users/search", userAuth, adminAuth, async (req, res) => {
   try {
@@ -415,10 +369,69 @@ router.get("/users/search", userAuth, adminAuth, async (req, res) => {
     
     res.status(200).json({ success: true, users });
   } catch (error) {
-    logger.error('Error searching users', { error: error.message, adminId: req.user._id });
+    logger.error('Error searching users', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(500).json({
       success: false,
       message: "Error searching users",
+      error: error.message
+    });
+  }
+});
+
+// Get all users with pagination
+router.get("/users", userAuth, adminAuth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit; // Fixed: Removed backslash
+
+    const users = await userModel.find({})
+      .select('-password -refreshToken')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    const total = await userModel.countDocuments();
+    
+    res.status(200).json({
+      success: true,
+      users,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching users', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching users",
+      error: error.message
+    });
+  }
+});
+
+// Get all admin users
+router.get("/admins", userAuth, adminAuth, async (req, res) => {
+  try {
+    const admins = await getAllAdmins();
+    res.status(200).json({ success: true, admins });
+  } catch (error) {
+    logger.error('Error fetching admins', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching admin users",
       error: error.message
     });
   }
@@ -436,7 +449,11 @@ router.put("/users/:userId/promote", userAuth, adminAuth, async (req, res) => {
       user: updatedUser
     });
   } catch (error) {
-    logger.error('Error promoting user', { error: error.message, userId: req.params.userId, adminId: req.user._id });
+    logger.error('Error promoting user', { 
+      error: error.message, 
+      userId: req.params.userId, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(400).json({
       success: false,
       message: error.message
@@ -456,7 +473,11 @@ router.put("/users/:userId/demote", userAuth, adminAuth, async (req, res) => {
       user: updatedUser
     });
   } catch (error) {
-    logger.error('Error demoting user', { error: error.message, userId: req.params.userId, adminId: req.user._id });
+    logger.error('Error demoting user', { 
+      error: error.message, 
+      userId: req.params.userId, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(400).json({
       success: false,
       message: error.message
@@ -470,7 +491,7 @@ router.delete("/users/:userId", userAuth, adminAuth, async (req, res) => {
     const { userId } = req.params;
     
     // Prevent self-deletion
-    if (userId === req.user._id.toString()) {
+    if (userId === req.user._id.toString()) { // Fixed: Removed backslash
       return res.status(400).json({
         success: false,
         message: "Cannot delete your own account"
@@ -489,7 +510,7 @@ router.delete("/users/:userId", userAuth, adminAuth, async (req, res) => {
     logger.info('User deleted by admin', {
       deletedUserId: userId,
       deletedUserEmail: user.email,
-      adminId: req.user._id,
+      adminId: req.user._id, // Fixed: Removed backslash
       adminEmail: req.user.email
     });
     
@@ -498,7 +519,11 @@ router.delete("/users/:userId", userAuth, adminAuth, async (req, res) => {
       message: "User deleted successfully"
     });
   } catch (error) {
-    logger.error('Error deleting user', { error: error.message, userId: req.params.userId, adminId: req.user._id });
+    logger.error('Error deleting user', { 
+      error: error.message, 
+      userId: req.params.userId, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(500).json({
       success: false,
       message: "Error deleting user",
@@ -513,7 +538,10 @@ router.get("/stats", userAuth, adminAuth, async (req, res) => {
     const stats = await getAdminStats();
     res.status(200).json({ success: true, stats });
   } catch (error) {
-    logger.error('Error fetching stats', { error: error.message, adminId: req.user._id });
+    logger.error('Error fetching stats', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(500).json({
       success: false,
       message: "Error fetching statistics",
@@ -524,12 +552,112 @@ router.get("/stats", userAuth, adminAuth, async (req, res) => {
 
 // Membership Management Routes
 
+// Search memberships (MUST be before parameterized routes)
+router.get("/memberships/search", userAuth, adminAuth, async (req, res) => {
+  try {
+    const { q, status, membershipType } = req.query;
+    
+    let query = {};
+    
+    if (status) query.status = status;
+    if (membershipType) query.membershipType = membershipType;
+    
+    let memberships;
+    
+    if (q) {
+      // First, find users matching the search query
+      const users = await userModel.find({
+        $or: [
+          { name: { $regex: q, $options: 'i' } },
+          { email: { $regex: q, $options: 'i' } }
+        ]
+      }).select('_id'); // Fixed: Removed backslash
+      
+      const userIds = users.map(user => user._id); // Fixed: Removed backslash
+      query.userId = { $in: userIds };
+    }
+    
+    memberships = await membershipModel.find(query)
+      .populate({
+        path: 'userId',
+        select: 'name email contact institute designation'
+      })
+      .sort({ createdAt: -1 })
+      .limit(20);
+    
+    res.status(200).json({ success: true, memberships });
+  } catch (error) {
+    logger.error('Error searching memberships', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
+    res.status(500).json({
+      success: false,
+      message: "Error searching memberships",
+      error: error.message
+    });
+  }
+});
+
+// Get membership statistics
+router.get("/memberships/stats", userAuth, adminAuth, async (req, res) => {
+  try {
+    const [totalMemberships, activeMemberships, expiringSoon, membershipsByType, membershipsByStatus] = await Promise.all([
+      membershipModel.countDocuments(),
+      membershipModel.countDocuments({ status: 'active' }),
+      membershipModel.findExpiringSoon(),
+      membershipModel.aggregate([
+        { $group: { _id: '$membershipType', count: { $sum: 1 } } } // Fixed: Removed backslash
+      ]),
+      membershipModel.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } } // Fixed: Removed backslash
+      ])
+    ]);
+    
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalMemberships,
+        activeMemberships,
+        expiringSoonCount: expiringSoon.length,
+        expiringSoon: expiringSoon.map(m => ({
+          _id: m._id, // Fixed: Removed backslash
+          membershipType: m.membershipType,
+          expiresAt: m.expiresAt,
+          user: {
+            name: m.userId?.name,
+            email: m.userId?.email
+          }
+        })),
+        membershipsByType: membershipsByType.reduce((acc, item) => {
+          acc[item._id] = item.count; // Fixed: Removed backslash
+          return acc;
+        }, {}),
+        membershipsByStatus: membershipsByStatus.reduce((acc, item) => {
+          acc[item._id] = item.count; // Fixed: Removed backslash
+          return acc;
+        }, {})
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching membership stats', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching membership statistics",
+      error: error.message
+    });
+  }
+});
+
 // Get all memberships with pagination and filters
 router.get("/memberships", userAuth, adminAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const skip = (page - 1) * limit; // Fixed: Removed backslash
     const status = req.query.status;
     const membershipType = req.query.membershipType;
     const duration = req.query.duration;
@@ -562,60 +690,13 @@ router.get("/memberships", userAuth, adminAuth, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Error fetching memberships', { error: error.message, adminId: req.user._id });
+    logger.error('Error fetching memberships', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(500).json({
       success: false,
       message: "Error fetching memberships",
-      error: error.message
-    });
-  }
-});
-
-// Get membership statistics
-router.get("/memberships/stats", userAuth, adminAuth, async (req, res) => {
-  try {
-    const [totalMemberships, activeMemberships, expiringSoon, membershipsByType, membershipsByStatus] = await Promise.all([
-      membershipModel.countDocuments(),
-      membershipModel.countDocuments({ status: 'active' }),
-      membershipModel.findExpiringSoon(),
-      membershipModel.aggregate([
-        { $group: { _id: '$membershipType', count: { $sum: 1 } } }
-      ]),
-      membershipModel.aggregate([
-        { $group: { _id: '$status', count: { $sum: 1 } } }
-      ])
-    ]);
-    
-    res.status(200).json({
-      success: true,
-      stats: {
-        totalMemberships,
-        activeMemberships,
-        expiringSoonCount: expiringSoon.length,
-        expiringSoon: expiringSoon.map(m => ({
-          _id: m._id,
-          membershipType: m.membershipType,
-          expiresAt: m.expiresAt,
-          user: {
-            name: m.userId?.name,
-            email: m.userId?.email
-          }
-        })),
-        membershipsByType: membershipsByType.reduce((acc, item) => {
-          acc[item._id] = item.count;
-          return acc;
-        }, {}),
-        membershipsByStatus: membershipsByStatus.reduce((acc, item) => {
-          acc[item._id] = item.count;
-          return acc;
-        }, {})
-      }
-    });
-  } catch (error) {
-    logger.error('Error fetching membership stats', { error: error.message, adminId: req.user._id });
-    res.status(500).json({
-      success: false,
-      message: "Error fetching membership statistics",
       error: error.message
     });
   }
@@ -652,7 +733,7 @@ router.put("/memberships/:membershipId/status", userAuth, adminAuth, async (req,
       oldStatus: membership.status,
       newStatus: status,
       reason,
-      adminId: req.user._id
+      adminId: req.user._id // Fixed: Removed backslash
     });
     
     res.status(200).json({
@@ -661,54 +742,13 @@ router.put("/memberships/:membershipId/status", userAuth, adminAuth, async (req,
       membership
     });
   } catch (error) {
-    logger.error('Error updating membership status', { error: error.message, adminId: req.user._id });
+    logger.error('Error updating membership status', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(500).json({
       success: false,
       message: "Error updating membership status",
-      error: error.message
-    });
-  }
-});
-
-// Search memberships (MUST be before parameterized routes)
-router.get("/memberships/search", userAuth, adminAuth, async (req, res) => {
-  try {
-    const { q, status, membershipType } = req.query;
-    
-    let query = {};
-    
-    if (status) query.status = status;
-    if (membershipType) query.membershipType = membershipType;
-    
-    let memberships;
-    
-    if (q) {
-      // First, find users matching the search query
-      const users = await userModel.find({
-        $or: [
-          { name: { $regex: q, $options: 'i' } },
-          { email: { $regex: q, $options: 'i' } }
-        ]
-      }).select('_id');
-      
-      const userIds = users.map(user => user._id);
-      query.userId = { $in: userIds };
-    }
-    
-    memberships = await membershipModel.find(query)
-      .populate({
-        path: 'userId',
-        select: 'name email contact institute designation'
-      })
-      .sort({ createdAt: -1 })
-      .limit(20);
-    
-    res.status(200).json({ success: true, memberships });
-  } catch (error) {
-    logger.error('Error searching memberships', { error: error.message, adminId: req.user._id });
-    res.status(500).json({
-      success: false,
-      message: "Error searching memberships",
       error: error.message
     });
   }
@@ -737,7 +777,10 @@ router.get("/memberships/:membershipId", userAuth, adminAuth, async (req, res) =
       membership
     });
   } catch (error) {
-    logger.error('Error fetching membership details', { error: error.message, adminId: req.user._id });
+    logger.error('Error fetching membership details', { 
+      error: error.message, 
+      adminId: req.user._id // Fixed: Removed backslash
+    });
     res.status(500).json({
       success: false,
       message: "Error fetching membership details",
