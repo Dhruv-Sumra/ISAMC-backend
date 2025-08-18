@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+// Add the poster image field to your video schema
 const videoSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -61,7 +62,11 @@ const videoSchema = new mongoose.Schema({
   order: {
     type: Number,
     default: 0
-  }
+  },
+  posterImage: {
+    type: String,
+    default: ''
+  },
 }, {
   timestamps: true
 });
@@ -98,4 +103,4 @@ videoSchema.methods.getEmbedUrl = function() {
 
 const Video = mongoose.model('Video', videoSchema);
 
-export default Video; 
+export default Video;
