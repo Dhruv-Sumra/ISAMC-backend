@@ -8,7 +8,11 @@ import {
   updateVideo,
   deleteVideo,
   toggleVideoStatus,
-  updateVideoOrder
+  updateVideoOrder,
+  adminGetAllVideoResources,
+  addVideoResource,
+  updateVideoResource,
+  deleteVideoResource
 } from '../controller/videoController.js';
 import adminAuth from '../middleware/adminAuth.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
@@ -27,5 +31,11 @@ videoRouter.put('/admin/videos/:id', adminAuth, invalidateCache(['/videos']), up
 videoRouter.delete('/admin/videos/:id', adminAuth, invalidateCache(['/videos']), deleteVideo);
 videoRouter.patch('/admin/videos/:id/toggle', adminAuth, invalidateCache(['/videos']), toggleVideoStatus);
 videoRouter.put('/admin/videos/order', adminAuth, invalidateCache(['/videos']), updateVideoOrder);
+
+// Video resources admin routes
+videoRouter.get('/admin/video-resources', adminAuth, adminGetAllVideoResources);
+videoRouter.post('/admin/video-resources', adminAuth, addVideoResource);
+videoRouter.put('/admin/video-resources/:id', adminAuth, updateVideoResource);
+videoRouter.delete('/admin/video-resources/:id', adminAuth, deleteVideoResource);
 
 export default videoRouter; 
