@@ -17,7 +17,8 @@ const adminAuth = async (req, res, next) => {
       
       return res.status(401).json({ 
         success: false, 
-        message: "Authentication required. Please log in first." 
+        message: "Authentication required. Please log in to access admin features.",
+        code: 'AUTH_REQUIRED'
       });
     }
 
@@ -42,7 +43,8 @@ const adminAuth = async (req, res, next) => {
       
       return res.status(403).json({ 
         success: false, 
-        message: "Admin access required. Contact administrator for access permissions." 
+        message: "Admin privileges required. You don't have permission to access this resource.",
+        code: 'ADMIN_ACCESS_REQUIRED'
       });
     }
     
@@ -66,7 +68,8 @@ const adminAuth = async (req, res, next) => {
     
     res.status(500).json({ 
       success: false, 
-      message: "Admin authentication error. Please try again." 
+      message: "Authentication service error. Please try again later.",
+      code: 'AUTH_SERVICE_ERROR'
     });
   }
 };

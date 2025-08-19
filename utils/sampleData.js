@@ -355,6 +355,90 @@ export const sampleData = {
         "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500"
       ]
     }
+  ],
+
+  // Video Resources
+  videoResources: [
+    {
+      id: 1,
+      title: "Smart Manufacturing Implementation Guide",
+      description: "Comprehensive PDF guide covering the implementation of smart manufacturing technologies in traditional manufacturing environments.",
+      resourceUrl: "https://example.com/resources/smart-manufacturing-guide.pdf",
+      resourceType: "documentation",
+      videoId: "smart-manufacturing-intro",
+      isActive: true,
+      category: "Implementation",
+      fileSize: "3.2 MB",
+      downloadable: true,
+      createdAt: "2024-01-15T10:00:00Z",
+      updatedAt: "2024-01-15T10:00:00Z"
+    },
+    {
+      id: 2,
+      title: "Lean Manufacturing Presentation Slides",
+      description: "PowerPoint presentation slides covering lean manufacturing principles, tools, and implementation strategies.",
+      resourceUrl: "https://example.com/resources/lean-manufacturing-slides.pptx",
+      resourceType: "slides",
+      videoId: "lean-manufacturing-principles",
+      isActive: true,
+      category: "Training",
+      fileSize: "8.5 MB",
+      downloadable: true,
+      createdAt: "2024-01-10T14:30:00Z",
+      updatedAt: "2024-01-10T14:30:00Z"
+    },
+    {
+      id: 3,
+      title: "3D Printing Code Repository",
+      description: "GitHub repository containing sample code, CAD files, and configuration examples for 3D printing applications.",
+      resourceUrl: "https://github.com/example/3d-printing-resources",
+      resourceType: "code",
+      videoId: "3d-printing-overview",
+      isActive: true,
+      category: "Development",
+      downloadable: false,
+      createdAt: "2024-01-05T09:15:00Z",
+      updatedAt: "2024-01-05T09:15:00Z"
+    },
+    {
+      id: 4,
+      title: "Quality Control Dataset",
+      description: "Sample dataset for quality control analysis including defect detection examples and statistical process control data.",
+      resourceUrl: "https://example.com/datasets/quality-control-data.csv",
+      resourceType: "dataset",
+      videoId: "quality-control-manufacturing",
+      isActive: true,
+      category: "Analytics",
+      fileSize: "12.8 MB",
+      downloadable: true,
+      createdAt: "2024-01-01T16:45:00Z",
+      updatedAt: "2024-01-01T16:45:00Z"
+    },
+    {
+      id: 5,
+      title: "Manufacturing Standards Reference",
+      description: "Quick reference guide to international manufacturing standards including ISO 9001, ISO 14001, and industry-specific standards.",
+      resourceUrl: "https://example.com/resources/manufacturing-standards-reference.pdf",
+      resourceType: "reference",
+      isActive: true,
+      category: "Standards",
+      fileSize: "2.1 MB",
+      downloadable: true,
+      createdAt: "2023-12-28T11:20:00Z",
+      updatedAt: "2023-12-28T11:20:00Z"
+    },
+    {
+      id: 6,
+      title: "Process Improvement Tutorial",
+      description: "Step-by-step tutorial for identifying and implementing process improvements in manufacturing operations.",
+      resourceUrl: "https://example.com/tutorials/process-improvement-guide.html",
+      resourceType: "tutorial",
+      isActive: true,
+      category: "Training",
+      downloadable: false,
+      createdAt: "2023-12-25T13:10:00Z",
+      updatedAt: "2023-12-25T13:10:00Z"
+    }
   ]
 };
 
