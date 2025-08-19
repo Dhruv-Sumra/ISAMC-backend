@@ -200,19 +200,29 @@ export const getVideoCategories = async (req, res) => {
 // Admin: Get all videos (including inactive)
 export const adminGetAllVideos = async (req, res) => {
   try {
+    console.log('Admin fetching all videos...');
     const videos = await Video.find()
       .sort({ order: 1, createdAt: -1 })
       .select('-__v');
     
+    console.log(`Found ${videos.length} videos for admin`);
+    
+    // Transform thumbnailUrl to thumbnail for frontend compatibility
+    const transformedVideos = videos.map(video => ({
+      ...video.toObject(),
+      thumbnail: video.thumbnailUrl
+    }));
+    
     res.json({
       success: true,
-      data: videos
+      data: transformedVideos
     });
   } catch (error) {
-    console.error('Error fetching videos:', error);
+    console.error('Error fetching videos for admin:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch videos'
+      message: 'Failed to fetch videos',
+      error: error.message
     });
   }
 };
@@ -341,6 +351,7 @@ export const addVideo = async (req, res) => {
       title,
       description,
       youtubeUrl,
+      thumbnail,
       category,
       author,
       tags,
@@ -379,6 +390,7 @@ export const addVideo = async (req, res) => {
       title,
       description,
       youtubeUrl,
+      thumbnailUrl: thumbnail || '',
       category: category || 'Other',
       author: author || '',
       tags: processedTags,
@@ -388,11 +400,15 @@ export const addVideo = async (req, res) => {
     });
     
     await video.save();
+    console.log('Video saved successfully:', video.title);
     
     res.status(201).json({
       success: true,
       message: 'Video added successfully',
-      data: video
+      data: {
+        ...video.toObject(),
+        thumbnail: video.thumbnailUrl
+      }
     });
   } catch (error) {
     console.error('Error adding video:', error);
@@ -418,6 +434,12 @@ export const updateVideo = async (req, res) => {
           message: 'Invalid YouTube URL'
         });
       }
+    }
+    
+    // Handle thumbnail field
+    if (updateData.thumbnail !== undefined) {
+      updateData.thumbnailUrl = updateData.thumbnail;
+      delete updateData.thumbnail;
     }
     
     // Process tags
