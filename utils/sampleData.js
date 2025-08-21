@@ -439,6 +439,76 @@ export const sampleData = {
       createdAt: "2023-12-25T13:10:00Z",
       updatedAt: "2023-12-25T13:10:00Z"
     }
+  ],
+
+  // Background Images
+  backgrounds: [
+    {
+      id: 1,
+      name: "Hero Section Background",
+      description: "Main hero section background image with manufacturing theme",
+      imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1920",
+      section: "hero",
+      isActive: true,
+      order: 1,
+      createdAt: "2024-01-15T10:00:00Z",
+      updatedAt: "2024-01-15T10:00:00Z"
+    },
+    {
+      id: 2,
+      name: "About Section Background",
+      description: "Background image for about us section",
+      imageUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1920",
+      section: "about",
+      isActive: true,
+      order: 1,
+      createdAt: "2024-01-14T14:30:00Z",
+      updatedAt: "2024-01-14T14:30:00Z"
+    },
+    {
+      id: 3,
+      name: "Events Section Background",
+      description: "Background for events and conferences section",
+      imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1920",
+      section: "events",
+      isActive: true,
+      order: 1,
+      createdAt: "2024-01-13T09:15:00Z",
+      updatedAt: "2024-01-13T09:15:00Z"
+    },
+    {
+      id: 4,
+      name: "Membership Background",
+      description: "Background image for membership section",
+      imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1920",
+      section: "membership",
+      isActive: true,
+      order: 1,
+      createdAt: "2024-01-12T16:45:00Z",
+      updatedAt: "2024-01-12T16:45:00Z"
+    },
+    {
+      id: 5,
+      name: "Contact Section Background",
+      description: "Background for contact us section",
+      imageUrl: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=1920",
+      section: "contact",
+      isActive: true,
+      order: 1,
+      createdAt: "2024-01-11T11:20:00Z",
+      updatedAt: "2024-01-11T11:20:00Z"
+    },
+    {
+      id: 6,
+      name: "Login Page Background",
+      description: "Background image for login and authentication pages",
+      imageUrl: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1920",
+      section: "login",
+      isActive: true,
+      order: 1,
+      createdAt: "2024-01-10T13:10:00Z",
+      updatedAt: "2024-01-10T13:10:00Z"
+    }
   ]
 };
 
