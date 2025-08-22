@@ -263,10 +263,10 @@ router.get("/leadership", async (req, res) => {
 router.get("/member-tiers", async (req, res) => {
   try {
     const data = await fetchSection("tier");
-    console.log('Member tiers data fetched:', JSON.stringify(data, null, 2));
+    console.log('Member tiers data fetched successfully');
     res.status(200).json({ success: true, data });
   } catch (error) {
-    console.error('Error fetching member tiers:', error);
+    console.error('Error fetching member tiers:', error.message);
     res.status(500).json({ 
       success: false, 
       message: "Error fetching member tiers",
@@ -301,7 +301,7 @@ router.get("/upcoming-events", async (req, res) => {
   }
 });
 
-// Get individual upcoming event by ID
+// Get individual upcoming event by ID (requires authentication)
 router.get("/upcoming-events/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -561,7 +561,7 @@ router.get('/other-events', async (req, res) => {
   }
 });
 
-// Get individual other event by ID
+// Get individual other event by ID (requires authentication)
 router.get('/other-events/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -605,7 +605,7 @@ router.get('/other-events/:id', async (req, res) => {
   }
 });
 
-// Get individual past event by ID
+// Get individual past event by ID (requires authentication)
 router.get('/past-events/:id', async (req, res) => {
   try {
     const { id } = req.params;

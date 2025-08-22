@@ -21,7 +21,7 @@ export const cacheMiddleware = (duration = 1800) => {
     // Check if we have cached data
     const cachedData = cache.get(cacheKey);
     if (cachedData) {
-      console.log('Cache hit for:', cacheKey);
+      console.log('Cache hit for:', encodeURIComponent(cacheKey));
       return res.json(cachedData);
     }
 
@@ -32,7 +32,7 @@ export const cacheMiddleware = (duration = 1800) => {
     res.json = function(data) {
       // Cache the response data
       cache.set(cacheKey, data, duration);
-      console.log('Cached response for:', cacheKey);
+      console.log('Cached response for:', encodeURIComponent(cacheKey));
       
       // Call original send function
       return originalSend.call(this, data);
@@ -56,7 +56,7 @@ export const invalidateCache = (patterns = []) => {
         const matchingKeys = keys.filter(key => key.includes(pattern));
         matchingKeys.forEach(key => {
           cache.del(key);
-          console.log('Invalidated cache for:', key);
+          console.log('Invalidated cache for:', encodeURIComponent(key));
         });
       });
 
@@ -87,7 +87,7 @@ export const cacheUtils = {
     const matchingKeys = keys.filter(key => key.includes(pattern));
     matchingKeys.forEach(key => {
       cache.del(key);
-      console.log('Cleared cache for:', key);
+      console.log('Cleared cache for:', encodeURIComponent(key));
     });
     return matchingKeys.length;
   },

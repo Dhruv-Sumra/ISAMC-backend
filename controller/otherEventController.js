@@ -23,7 +23,7 @@ class OtherEventController {
       );
 
       logger.info('Other event created', { 
-        eventTitle: eventData.title,
+        eventTitle: encodeURIComponent(eventData.title),
         adminId: req.user?._id 
       });
 
@@ -66,7 +66,7 @@ class OtherEventController {
       }
 
       logger.info('Other event updated', { 
-        eventId: id,
+        eventId: encodeURIComponent(id),
         adminId: req.user?._id 
       });
 
@@ -78,7 +78,7 @@ class OtherEventController {
     } catch (error) {
       logger.error('Error updating other event', { 
         error: error.message,
-        eventId: req.params.id,
+        eventId: encodeURIComponent(req.params.id),
         adminId: req.user?._id 
       });
       res.status(500).json({
@@ -124,7 +124,7 @@ class OtherEventController {
       );
 
       logger.info('Other event deleted', { 
-        eventId: id,
+        eventId: encodeURIComponent(id),
         adminId: req.user?._id 
       });
 
@@ -135,7 +135,7 @@ class OtherEventController {
     } catch (error) {
       logger.error('Error deleting other event', { 
         error: error.message,
-        eventId: req.params.id,
+        eventId: encodeURIComponent(req.params.id),
         adminId: req.user?._id 
       });
       res.status(500).json({

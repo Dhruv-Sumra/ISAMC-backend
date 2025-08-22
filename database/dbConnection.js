@@ -18,7 +18,7 @@ const dbConnection = async () => {
     
     // Connection event listeners
     mongoose.connection.on('error', (err) => {
-      logger.error('MongoDB connection error:', err);
+      logger.error('MongoDB connection error:', err.message);
     });
     
     mongoose.connection.on('disconnected', () => {
@@ -30,7 +30,7 @@ const dbConnection = async () => {
     });
     
   } catch (err) {
-    logger.error('Database connection failed:', err);
+    logger.error('Database connection failed:', err.message);
     
     // Retry connection after 5 seconds
     setTimeout(() => {
@@ -47,7 +47,7 @@ process.on('SIGINT', async () => {
     logger.info('Database connection closed through app termination');
     process.exit(0);
   } catch (err) {
-    logger.error('Error during database disconnection:', err);
+    logger.error('Error during database disconnection:', err.message);
     process.exit(1);
   }
 });

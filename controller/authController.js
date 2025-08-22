@@ -151,7 +151,7 @@ export const login = async (req, res) => {
   const { email, password, rememberMe = true } = req.body;
 
   try {
-    console.log('Login attempt for email:', email);
+    console.log('Login attempt for email:', encodeURIComponent(email));
     
     if (!email || !password) {
       return res.status(400).json({ 

@@ -19,6 +19,8 @@ import videoRoutes from './routes/videoRoutes.js';
 import cacheRoutes from './routes/cacheRoutes.js';
 import galleryRoutes from './routes/galleryRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import publicationRoutes from './routes/publicationRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -135,6 +137,9 @@ app.use("/api", videoRoutes);
 app.use("/api", cacheRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/publications', publicationRoutes);
+console.log('✓ Publication routes mounted at /api/publications');
 
 // 404 handler for undefined routes (must come after all valid routes)
 app.use((req, res) => {

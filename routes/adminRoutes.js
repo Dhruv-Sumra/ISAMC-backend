@@ -266,9 +266,9 @@ router.post("/bulk-upload/:sectionName", userAuth, adminAuth, async (req, res) =
     );
 
     logger.info('Bulk upload successful', { 
-      sectionName, 
+      sectionName: encodeURIComponent(sectionName), 
       count: data.length, 
-      adminId: req.user._id // Fixed: Removed backslash
+      adminId: req.user._id
     });
 
     res.status(201).json({
@@ -279,8 +279,8 @@ router.post("/bulk-upload/:sectionName", userAuth, adminAuth, async (req, res) =
   } catch (error) {
     logger.error('Bulk upload error', { 
       error: error.message, 
-      sectionName: req.params.sectionName, 
-      adminId: req.user._id // Fixed: Removed backslash
+      sectionName: encodeURIComponent(req.params.sectionName), 
+      adminId: req.user._id
     });
     res.status(500).json({
       success: false,
