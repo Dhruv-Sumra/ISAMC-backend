@@ -540,6 +540,19 @@ router.get("/equipment", async (req, res) => {
   }
 });
 
+router.get("/case-studies", async (req, res) => {
+  try {
+    const data = await fetchSection("caseStudy");
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching case studies",
+      error: error.message 
+    });
+  }
+});
+
 router.get("/resources", async (req, res) => {
   try {
     const data = await fetchSection("resourceCards");
