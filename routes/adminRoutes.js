@@ -169,19 +169,29 @@ router.put("/update-item/:sectionName/:itemId", userAuth, adminAuth, async (req,
 router.delete("/delete-item/:sectionName/:itemId", userAuth, adminAuth, async (req, res) => {
   try {
     const { sectionName, itemId } = req.params;
+    console.log(`Deleting item ${itemId} from section ${sectionName}`);
 
     const result = await DB.findOneAndUpdate(
       {},
-      { $pull: { [sectionName]: { _id: itemId } } }, // Fixed: Removed backslash
+      { $pull: { [sectionName]: { _id: itemId } } },
       { new: true }
     );
 
+    if (!result) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Section not found" 
+      });
+    }
+
+    console.log(`Delete operation completed for ${sectionName}`);
     res.status(200).json({ 
       success: true, 
       message: "Item deleted successfully",
-      data: result 
+      data: result[sectionName] 
     });
   } catch (error) {
+    console.error('Delete error:', error);
     res.status(500).json({ 
       success: false, 
       message: "Error deleting item",
