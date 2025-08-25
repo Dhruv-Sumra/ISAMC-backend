@@ -21,6 +21,7 @@ import galleryRoutes from './routes/galleryRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import publicationRoutes from './routes/publicationRoutes.js';
+import equipmentRoutes from './routes/equipmentRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -140,6 +141,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/publications', publicationRoutes);
 console.log('✓ Publication routes mounted at /api/publications');
+app.use('/api/equipment', equipmentRoutes);
 
 // 404 handler for undefined routes (must come after all valid routes)
 app.use((req, res) => {

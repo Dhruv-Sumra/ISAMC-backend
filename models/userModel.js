@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     designation: {type: String, required: false, default: ""},
     gender: {type: String, enum: ['Male', 'Female', 'Other'], required: false, default: 'Other'},
     expertise: {type: String, required: false, default: ""},
-    dateOfBirth: {type: Date, required: false, default: Date.now},
+
     linkedinUrl: {type: String, default: ""},
     role: {type: String, enum: ['user', 'admin'], default: 'user'},
     verifyOtp: {type:String , default:" "},
