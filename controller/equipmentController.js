@@ -13,8 +13,8 @@ export const addEquipment = async (req, res) => {
   try {
     const { name, image, description, useCase } = req.body;
     
-    if (!name || !image || !description || !useCase) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
+    if (!name || !image || !description) {
+      return res.status(400).json({ success: false, message: 'Name, image, and description are required' });
     }
 
     const equipment = new Equipment({ name, image, description, useCase });

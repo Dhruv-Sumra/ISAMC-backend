@@ -16,7 +16,7 @@ const equipmentSchema = new mongoose.Schema({
   },
   useCase: {
     type: String,
-    required: true
+    required: false
   }
 }, {
   timestamps: true

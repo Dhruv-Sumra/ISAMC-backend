@@ -527,6 +527,19 @@ router.get("/generals", async (req, res) => {
   }
 });
 
+router.get("/equipment", async (req, res) => {
+  try {
+    const data = await fetchSection("equipment");
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching equipment",
+      error: error.message 
+    });
+  }
+});
+
 router.get("/resources", async (req, res) => {
   try {
     const data = await fetchSection("resourceCards");
