@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import { DB } from "../models/dbSchema.js";
 
 const router = express.Router();
@@ -520,7 +521,64 @@ router.get("/generals", async (req, res) => {
   } catch (error) {
     res.status(500).json({ 
       success: false, 
-      message: "Error fetching ",
+      message: "Error fetching generals",
+      error: error.message 
+    });
+  }
+});
+
+// Add new general
+router.post("/generals", async (req, res) => {
+  try {
+    const newGeneral = { ...req.body, _id: new mongoose.Types.ObjectId() };
+    const result = await DB.findOneAndUpdate(
+      {},
+      { $push: { generals: newGeneral } },
+      { new: true, upsert: true }
+    );
+    res.status(201).json({ success: true, data: result.generals });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Error adding general",
+      error: error.message 
+    });
+  }
+});
+
+// Update general
+router.put("/generals/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await DB.findOneAndUpdate(
+      { "generals._id": id },
+      { $set: { "generals.$": { ...req.body, _id: id } } },
+      { new: true }
+    );
+    res.status(200).json({ success: true, data: result.generals });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Error updating general",
+      error: error.message 
+    });
+  }
+});
+
+// Delete general
+router.delete("/generals/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await DB.findOneAndUpdate(
+      {},
+      { $pull: { generals: { _id: id } } },
+      { new: true }
+    );
+    res.status(200).json({ success: true, data: result.generals });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Error deleting general",
       error: error.message 
     });
   }
