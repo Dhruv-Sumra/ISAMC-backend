@@ -117,7 +117,7 @@ router.put("/update-section/:sectionName", userAuth, adminAuth, async (req, res)
 router.post("/add-item/:sectionName", userAuth, adminAuth, async (req, res) => {
   try {
     const { sectionName } = req.params;
-    const newItem = req.body;
+    const newItem = { ...req.body, _id: new Date().getTime().toString() };
 
     const result = await DB.findOneAndUpdate(
       {},
