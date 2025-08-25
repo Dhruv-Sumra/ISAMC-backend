@@ -67,6 +67,14 @@ router.get("/dashboard", userAuth, adminAuth, async (req, res) => {
       return;
     }
     
+    // Check if equipment section is missing and add it
+    if (!contentData.equipment || contentData.equipment.length === 0) {
+      console.log('Equipment section missing, adding sample equipment data...');
+      await initializeSampleData(DB);
+      const updatedData = await DB.findOne({});
+      contentData.equipment = updatedData.equipment;
+    }
+    
     console.log('Admin dashboard data fetched successfully');
     
     res.status(200).json({ 
@@ -341,6 +349,14 @@ const validateBulkUploadItem = (item, sectionName) => {
       }
       if (!item.location || item.location.trim() === '') {
         errors.push('Location is required');
+      }
+      break;
+    case 'equipment':
+      if (!item.title || item.title.trim() === '') {
+        errors.push('Title is required');
+      }
+      if (!item.body || item.body.trim() === '') {
+        errors.push('Body is required');
       }
       break;
     default:

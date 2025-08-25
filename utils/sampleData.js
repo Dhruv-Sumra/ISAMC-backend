@@ -444,39 +444,39 @@ export const sampleData = {
   // Equipment
   equipment: [
     {
-      name: "Ultimaker S3 3D Printer",
-      image: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=500",
-      description: "Professional dual-extrusion 3D printer designed for reliable, industrial-grade printing with advanced materials and complex geometries.",
+      title: "Ultimaker S3 3D Printer",
+      img: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=500",
+      body: "Professional dual-extrusion 3D printer designed for reliable, industrial-grade printing with advanced materials and complex geometries.",
       useCase: "Ideal for rapid prototyping, functional testing, small-batch production, and educational demonstrations in additive manufacturing research and development."
     },
     {
-      name: "SEM Scanning Electron Microscope",
-      image: "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=500",
-      description: "High-resolution scanning electron microscope for detailed surface analysis and characterization of materials at nanoscale level.",
+      title: "SEM Scanning Electron Microscope",
+      img: "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=500",
+      body: "High-resolution scanning electron microscope for detailed surface analysis and characterization of materials at nanoscale level.",
       useCase: "Essential for material characterization, quality control, failure analysis, and research in nanotechnology and materials science applications."
     },
     {
-      name: "Universal Testing Machine (UTM)",
-      image: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=500",
-      description: "Precision mechanical testing equipment for determining tensile, compressive, and flexural properties of materials and components.",
+      title: "Universal Testing Machine (UTM)",
+      img: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=500",
+      body: "Precision mechanical testing equipment for determining tensile, compressive, and flexural properties of materials and components.",
       useCase: "Critical for material property evaluation, quality assurance testing, product development, and compliance with international testing standards."
     },
     {
-      name: "X-Ray Diffractometer (XRD)",
-      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=500",
-      description: "Advanced analytical instrument for crystal structure analysis and phase identification in crystalline materials.",
+      title: "X-Ray Diffractometer (XRD)",
+      img: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=500",
+      body: "Advanced analytical instrument for crystal structure analysis and phase identification in crystalline materials.",
       useCase: "Fundamental for crystallographic analysis, phase identification, texture analysis, and structural characterization in materials research."
     },
     {
-      name: "CNC Machining Center",
-      image: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500",
-      description: "High-precision computer numerical control machining center for automated manufacturing of complex parts with tight tolerances.",
+      title: "CNC Machining Center",
+      img: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500",
+      body: "High-precision computer numerical control machining center for automated manufacturing of complex parts with tight tolerances.",
       useCase: "Perfect for precision manufacturing, prototyping, tooling production, and small to medium batch production of complex mechanical components."
     },
     {
-      name: "Laser Cutting System",
-      image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500",
-      description: "Industrial fiber laser cutting system for precise cutting of various materials including metals, plastics, and composites.",
+      title: "Laser Cutting System",
+      img: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500",
+      body: "Industrial fiber laser cutting system for precise cutting of various materials including metals, plastics, and composites.",
       useCase: "Excellent for sheet metal fabrication, rapid prototyping, custom part production, and precision cutting applications in manufacturing."
     }
   ],
