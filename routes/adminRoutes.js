@@ -67,13 +67,7 @@ router.get("/dashboard", userAuth, adminAuth, async (req, res) => {
       return;
     }
     
-    // Check if equipment section is missing and add it
-    if (!contentData.equipment || contentData.equipment.length === 0) {
-      console.log('Equipment section missing, adding sample equipment data...');
-      await initializeSampleData(DB);
-      const updatedData = await DB.findOne({});
-      contentData.equipment = updatedData.equipment;
-    }
+
     
     console.log('Admin dashboard data fetched successfully');
     
