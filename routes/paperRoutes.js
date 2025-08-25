@@ -6,7 +6,7 @@ import {
   deletePaper 
 } from '../controller/paperController.js';
 import multer from 'multer';
-import { adminAuth } from '../middleware/adminAuth.js';
+import adminAuth from '../middleware/adminAuth.js';
 
 const router = express.Router();
 const upload = multer({
