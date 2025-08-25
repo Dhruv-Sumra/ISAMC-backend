@@ -530,7 +530,17 @@ router.get("/generals", async (req, res) => {
 router.get("/equipment", async (req, res) => {
   try {
     const data = await fetchSection("equipment");
-    res.status(200).json({ success: true, data });
+    
+    // If no equipment data exists, initialize with sample data
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      console.log('No equipment data found, initializing...');
+      const { initializeSampleData } = await import('../utils/sampleData.js');
+      await initializeSampleData(DB);
+      const newData = await fetchSection("equipment");
+      return res.status(200).json({ success: true, data: newData || [] });
+    }
+    
+    res.status(200).json({ success: true, data: data || [] });
   } catch (error) {
     res.status(500).json({ 
       success: false, 
