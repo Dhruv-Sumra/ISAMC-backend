@@ -43,10 +43,28 @@ router.use((req, res, next) => {
   next();
 });
 
+// Add CORS headers for upload route
+router.options('/upload-pdf', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
 // Main upload route
-router.post('/upload-pdf', (req, res, next) => {
-  console.log('Upload-pdf route hit!');
-  next();
-}, userAuth, adminAuth, upload.single('pdf'), uploadPublicationPDF);
+router.post('/upload-pdf', 
+  (req, res, next) => {
+    // Add CORS headers
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    console.log('Upload-pdf route hit!');
+    next();
+  },
+  upload.single('pdf'),
+  userAuth, 
+  adminAuth, 
+  uploadPublicationPDF
+);
 
 export default router;
