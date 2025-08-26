@@ -14,6 +14,41 @@ class CloudinaryService {
     console.log('Cloudinary configured with cloud name:', process.env.CLOUDINARY_CLOUD_NAME);
   }
 
+  async uploadPDFBuffer(buffer, originalName) {
+    try {
+      console.log('Uploading buffer to Cloudinary:', { originalName, bufferSize: buffer.length });
+
+      // Generate a clean public_id
+      const publicId = `publications/${Date.now()}_${originalName.replace(/[^a-zA-Z0-9.-]/g, '_').replace('.pdf', '')}`;
+
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'raw',
+            public_id: publicId,
+            folder: 'publications',
+            use_filename: true,
+            unique_filename: false,
+            overwrite: false
+          },
+          (error, result) => {
+            if (error) {
+              console.error('Cloudinary upload error:', error);
+              reject(new Error(`Cloudinary upload failed: ${error.message}`));
+            } else {
+              console.log('Cloudinary upload successful:', result.secure_url);
+              resolve(result.secure_url);
+            }
+          }
+        ).end(buffer);
+      });
+
+    } catch (error) {
+      console.error('Cloudinary upload error:', error);
+      throw new Error(`Cloudinary upload failed: ${error.message}`);
+    }
+  }
+
   async uploadPDF(filePath, originalName) {
     try {
       if (!fs.existsSync(filePath)) {
