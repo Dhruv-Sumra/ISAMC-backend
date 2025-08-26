@@ -1,4 +1,5 @@
-import googleDriveService from '../config/googleDrive.js';
+// controller/publicationController.js
+import cloudinaryService from '../config/cloudinary.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,7 +14,8 @@ export const uploadPublicationPDF = async (req, res) => {
     console.log('PDF upload request received:', {
       user: req.user?.email,
       fileReceived: !!req.file,
-      fileName: req.file?.originalname
+      fileName: req.file?.originalname,
+      fileSize: req.file?.size
     });
     
     const file = req.file;
@@ -26,6 +28,7 @@ export const uploadPublicationPDF = async (req, res) => {
       });
     }
 
+    // Validate file type
     if (file.mimetype !== 'application/pdf') {
       console.log('Invalid file type:', file.mimetype);
       return res.status(400).json({
@@ -34,54 +37,59 @@ export const uploadPublicationPDF = async (req, res) => {
       });
     }
 
-    // Check Google Drive configuration
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE || 
-        !process.env.GOOGLE_DRIVE_FOLDER_ID ||
-        process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE === 'path/to/your/service-account-key.json' ||
-        process.env.GOOGLE_DRIVE_FOLDER_ID === 'your_drive_folder_id_here') {
-      console.warn('Google Drive not configured, returning placeholder URL');
-      
-      // Return a placeholder response when Google Drive is not configured
-      return res.status(200).json({
-        success: true,
-        url: `https://placeholder-pdf-url.com/${file.originalname}`,
-        message: 'PDF upload simulated (Google Drive not configured). Please configure Google Drive for actual uploads.',
-        warning: 'Google Drive service not configured. This is a placeholder URL.'
+    // Validate file size (10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return res.status(400).json({
+        success: false,
+        message: 'File size must be less than 10MB.'
       });
     }
 
-    // Create temp file for Google Drive upload
+    // Check Cloudinary configuration
+    if (!process.env.CLOUDINARY_CLOUD_NAME || 
+        !process.env.CLOUDINARY_API_KEY ||
+        !process.env.CLOUDINARY_API_SECRET) {
+      console.warn('Cloudinary not configured');
+      return res.status(500).json({
+        success: false,
+        message: 'Cloudinary configuration missing. Please configure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.'
+      });
+    }
+
+    // Create temp file for Cloudinary upload
     const tempDir = path.join(__dirname, '../temp');
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
     
-    tempFilePath = path.join(tempDir, `${Date.now()}-${file.originalname}`);
+    const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    tempFilePath = path.join(tempDir, `${Date.now()}-${sanitizedFilename}`);
     fs.writeFileSync(tempFilePath, file.buffer);
     console.log('Temp file created:', tempFilePath);
 
-    // Upload to Google Drive
-    console.log('Starting Google Drive upload...');
-    let googleDriveUrl;
+    // Upload to Cloudinary
+    console.log('Starting Cloudinary upload...');
     try {
-      googleDriveUrl = await googleDriveService.uploadPDF(tempFilePath, file.originalname);
-      console.log('Google Drive upload successful:', googleDriveUrl);
-    } catch (driveError) {
-      console.error('Google Drive upload failed:', driveError);
-      // Return placeholder URL if Google Drive fails
-      return res.status(200).json({
-        success: true,
-        url: `https://placeholder-pdf-url.com/${file.originalname}`,
-        message: 'PDF received but Google Drive upload failed. Please check Google Drive configuration.',
-        warning: 'Google Drive upload failed. This is a placeholder URL.'
+      const cloudinaryUrl = await cloudinaryService.uploadPDF(tempFilePath, file.originalname);
+      console.log('Cloudinary upload successful:', cloudinaryUrl);
+      
+      res.status(200).json({ 
+        success: true, 
+        url: cloudinaryUrl,
+        message: 'PDF uploaded successfully to Cloudinary!',
+        fileName: file.originalname,
+        fileSize: file.size,
+        uploadedAt: new Date().toISOString()
+      });
+      
+    } catch (cloudinaryError) {
+      console.error('Cloudinary upload failed:', cloudinaryError);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload PDF to Cloudinary: ' + cloudinaryError.message
       });
     }
-    
-    res.status(200).json({ 
-      success: true, 
-      url: googleDriveUrl,
-      message: 'PDF uploaded successfully!'
-    });
     
   } catch (err) {
     console.error('PDF upload error:', {
