@@ -177,6 +177,98 @@ The ISAMC Team
   }
 };
 
+export const submitPaper = async (req, res) => {
+  try {
+    const { name, email, title } = req.body;
+    const file = req.file;
+
+    if (!name || !email || !title) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and title are required"
+      });
+    }
+
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: "PDF file is required"
+      });
+    }
+
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: process.env.CONTACT_EMAIL || process.env.SENDER_EMAIL,
+      subject: `New Paper Submission: ${title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
+            New Paper Submission
+          </h2>
+          
+          <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1e293b; margin-top: 0;">Submission Details:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #374151;">Author Name:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #374151;">Email:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #374151;">Paper Title:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${title}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #374151;">File Name:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${file.originalname}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #374151;">File Size:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${(file.size / 1024 / 1024).toFixed(2)} MB</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background-color: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="color: #1e40af; margin: 0; font-size: 14px;">
+              <strong>Submission Time:</strong> ${new Date().toLocaleString()}
+            </p>
+          </div>
+        </div>
+      `,
+      attachments: [{
+        filename: file.originalname,
+        content: file.buffer
+      }]
+    };
+
+    await sendCpanelEmail({
+      to: process.env.CONTACT_EMAIL || process.env.CPANEL_EMAIL_USER,
+      subject: `New Paper Submission: ${title}`,
+      html: mailOptions.html,
+      attachments: [{
+        filename: file.originalname,
+        content: file.buffer
+      }]
+    });
+
+    return res.json({
+      success: true,
+      message: "Paper submitted successfully! We'll review it and get back to you."
+    });
+
+  } catch (error) {
+    console.error("Paper submission error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to submit paper. Please try again later."
+    });
+  }
+};
+
 export const sendMembershipApplication = async (req, res) => {
   try {
     const { 
